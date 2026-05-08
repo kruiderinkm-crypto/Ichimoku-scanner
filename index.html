@@ -653,7 +653,7 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
       <div style="display:flex;align-items:center;gap:4px">
         <span id="stmr" style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3)">--</span>
         <button class="btn" onclick="doRefresh()" style="flex:1;font-size:9px;padding:4px 6px">↺ Refresh</button>
-      <button class="btn" onclick="localStorage.removeItem('cg_top50_cache');doRefresh()" title="Cache legen en opnieuw laden" style="font-size:9px;padding:4px 6px">🔄</button>
+      <button class="btn" onclick="localStorage.removeItem('cg_top100_cache');doRefresh()" title="Cache legen en opnieuw laden" style="font-size:9px;padding:4px 6px">🔄</button>
       </div>
       <select onchange="cd=+this.value||300;doRefresh()" style="background:var(--ink-3);border:1px solid var(--line);color:var(--tx-2);padding:4px 6px;border-radius:5px;font-family:JetBrains Mono,monospace;font-size:9px;outline:none;width:100%">
         <option value="300">Auto 5 min</option><option value="600">Auto 10 min</option><option value="1800">Auto 30 min</option><option value="0">Handmatig</option>
@@ -667,7 +667,7 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
       <div class="logo">雲</div>
       <div class="brand-text">
         <h1>Ichimoku Scanner</h1>
-        <p>CoinGecko Top 50 · Binance OHLCV · 7 Timeframes</p>
+        <p>CoinGecko Top 100 · Binance OHLCV · 7 Timeframes</p>
       </div>
     </div>
     <div class="hdr-r">
@@ -818,7 +818,7 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
     </div>
     <div class="ld show" id="loader">
       <div class="sp"></div>
-      <div class="lt" id="ltxt">Top 50 ophalen via CoinGecko...</div>
+      <div class="lt" id="ltxt">Top 100 ophalen via CoinGecko...</div>
       <div style="width:300px;max-width:90%">
         <div class="prog-track"><div class="prog-fill" id="pFill" style="width:0%"></div></div>
       </div>
@@ -1721,7 +1721,7 @@ function build2WCandles(weeklyCandles) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// CoinGecko top 50 (no stables) — with retry
+// CoinGecko top 100 (no stables) — with retry
 // ═══════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 // HYBRIDE DATA OPHALEN
@@ -1729,7 +1729,7 @@ function build2WCandles(weeklyCandles) {
 // Binance    → live prijzen + 24h verandering (1 call voor alles)
 // ═══════════════════════════════════════════════════════════
 
-const CG_CACHE_KEY = 'cg_top50_cache';
+const CG_CACHE_KEY = 'cg_top100_cache';
 const CG_CACHE_TTL = 60 * 60 * 1000; // 1 uur
 
 // Haal top-50 lijst op — gebruik cache als mogelijk
@@ -1737,17 +1737,17 @@ async function getTop50Cached() {
   try {
     const cached = JSON.parse(localStorage.getItem(CG_CACHE_KEY) || 'null');
     if (cached && cached.ts && (Date.now() - cached.ts) < CG_CACHE_TTL && cached.data?.length > 0) {
-      setLtxt(`Top 50 geladen uit cache (${Math.round((Date.now()-cached.ts)/60000)}m oud)`);
+      setLtxt(`Top 100 geladen uit cache (${Math.round((Date.now()-cached.ts)/60000)}m oud)`);
       return cached.data;
     }
   } catch(e) {}
 
-  setLtxt('Top 50 ophalen via CoinGecko...');
-  setStatus('wait', 'Top 50 ophalen via CoinGecko...');
+  setLtxt('Top 100 ophalen via CoinGecko...');
+  setStatus('wait', 'Top 100 ophalen via CoinGecko...');
 
   const urls = [
-    `${CG_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=80&page=1&sparkline=false&price_change_percentage=24h`,
-    `${CG_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=80&page=1`,
+    `${CG_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`,
+    `${CG_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1`,
   ];
 
   let lastErr;
@@ -1755,7 +1755,7 @@ async function getTop50Cached() {
     try {
       const data = await apiFetch(url, 15000);
       if (!Array.isArray(data) || data.length === 0) throw new Error('Lege response');
-      const filtered = data.filter(c => !isStablecoin(c)).slice(0, 50);
+      const filtered = data.filter(c => !isStablecoin(c)).slice(0, 100);
       // Sla op in cache
       try { localStorage.setItem(CG_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: filtered })); } catch(e) {}
       return filtered;
@@ -1820,9 +1820,9 @@ async function enrichWithBinanceTickers(coins) {
 
 async function getTop20() {
   const urls = [
-    `${CG_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=80&page=1&sparkline=false&price_change_percentage=24h`,
+    `${CG_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`,
     // fallback: try without optional params if first fails
-    `${CG_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=80&page=1`,
+    `${CG_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1`,
   ];
 
   let lastErr;
@@ -1831,7 +1831,7 @@ async function getTop20() {
       const data = await apiFetch(url, 15000);
       if (!Array.isArray(data) || data.length === 0) throw new Error('Empty response');
       const filtered = data.filter(c => !isStablecoin(c));
-      return filtered.slice(0, 50);
+      return filtered.slice(0, 100);
     } catch(e) {
       lastErr = e;
       await sleep(2000);
@@ -1862,7 +1862,7 @@ async function scan() {
     // Stap 2: Live prijzen via Binance (1 snelle call voor alle 50 coins)
     setLtxt('Live prijzen ophalen via Binance...');
     await enrichWithBinanceTickers(coins);
-    setStatus('wait', `Top 50 geladen — Ichimoku berekening start...`);
+    setStatus('wait', `Top 100 geladen — Ichimoku berekening start...`);
 
     DATA = [];
 
@@ -1874,7 +1874,7 @@ async function scan() {
       setProgress(pct);
       const bnSym = getBnSymbol(c.id, c.symbol);
       setStatus('wait', `${c.symbol.toUpperCase()} analyseren (${idx+1}/${coins.length})...`);
-      setLtxt(`${c.name} — Ichimoku berekenen (${idx+1}/${coins.length})`);
+      setLtxt(`${c.name} — analyseren (${idx+1}/${coins.length}) · ~${Math.round((coins.length-idx-1)*2.5)}s resterend`);
 
       const tfR = {};
       let tScore = 0, tCount = 0;
@@ -1901,6 +1901,7 @@ async function scan() {
             weeklyCandles = r.candles;
             usedExchange  = r.exchange;
             candles = weeklyCandles;
+            if (r?.candles?.length > 0) cacheCandles(c.id, tf.key, r.candles);
           } else {
             const lim = Math.max(needed, tf.limit);
             const r = await fetchCandles(c.id, c.symbol, bnSym, tf.bnInterval, Math.min(lim, 1000));
@@ -3148,7 +3149,7 @@ async function fetchPortfolioPrices() {
 
 function enrichWithPrices() {
   for (const holding of PORTFOLIO) {
-    // Match with scanner DATA (top 50)
+    // Match with scanner DATA (top 100)
     const match = DATA.find(d =>
       d.symbol.toUpperCase() === holding.symbol.toUpperCase()
     );
@@ -4440,6 +4441,7 @@ scan()
     if(typeof computeAllProfile2!=="undefined") await computeAllProfile2();
     render();
     enrichAndRefresh();
+    if (typeof runSignalScan === "function" && DATA.length > 0) setTimeout(runSignalScan, 500);
     fetchMacroData();
   })
   .catch(e => {
@@ -5374,7 +5376,7 @@ function analyseSignal(coin, tfKey, tfLabel) {
 
   // ── Criterium 1: Ichimoku score sterk genoeg ──────────────────────────
   // 4H: minder streng (score ≥ 2.0), 1D: strenger (score ≥ 2.5)
-  const minScore = tfKey === 'tf_4h' ? 2.0 : 2.5;
+  const minScore = tfKey === 'tf_4h' ? 2.0 : 2.5; // bij top 100: kwaliteit boven kwantiteit
   if (verdict === 'bullish' && score < minScore) return null;
   if (verdict === 'bearish' && score > -minScore) return null;
   if (verdict === 'neutral') return null;
@@ -5398,12 +5400,13 @@ function analyseSignal(coin, tfKey, tfLabel) {
   let rangeLow   = cloudBot || price * 0.95;
 
   if (candles && candles.length >= 25) {
-    const ci = candles.length - 1;
+    const ci        = candles.length - 1;
+    const closedIdx = ci - 1; // vorige afgesloten candle
 
-    // Volume spike vs 20-bar gemiddelde
+    // Volume spike vs 20-bar gemiddelde (vorige afgesloten candle — niet huidig open candle!)
     const volBars = 20;
-    const avgVol  = candles.slice(ci - volBars, ci).reduce((s,c) => s + (c.v||0), 0) / volBars;
-    const curVol  = candles[ci].v || 0;
+    const avgVol  = candles.slice(closedIdx - volBars, closedIdx).reduce((s,c) => s + (c.v||0), 0) / volBars;
+    const curVol  = candles[closedIdx].v || 0;
     volRatio      = avgVol > 0 ? curVol / avgVol : 0;
 
     // Minimaal vereist volume:
@@ -5413,7 +5416,7 @@ function analyseSignal(coin, tfKey, tfLabel) {
 
     // Range van laatste 8 bars
     const rangeBars = 8;
-    const recent    = candles.slice(ci - rangeBars + 1, ci + 1);
+    const recent    = candles.slice(closedIdx - rangeBars + 1, closedIdx + 1);
     rangeHigh = Math.max(...recent.map(c => c.h));
     rangeLow  = Math.min(...recent.map(c => c.l));
     rangePct  = (rangeHigh - rangeLow) / rangeLow * 100;
@@ -5503,7 +5506,7 @@ function runSignalScan() {
   const has1D = Object.values(SIGNAL_CANDLE_CACHE).filter(c => c.tf_1d?.length > 0).length;
 
   if (cachedCoins === 0) {
-    if (status) status.textContent = '⏳ Wacht op scan data... Laat de scanner eerst een volledige scan uitvoeren.';
+    if (status) status.textContent = '⏳ Geen candle data. Ga naar Scanner en wacht tot de scan klaar is (±2 min).';
     if (document.getElementById('signalCards')) {
       document.getElementById('signalCards').innerHTML =
         '<div style="text-align:center;padding:40px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">' +
