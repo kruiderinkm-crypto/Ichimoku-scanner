@@ -1244,9 +1244,9 @@ function isStablecoin(coin) {
 // Binance timeframe strings
 const TFS = [
   { key:'tf_1h',  label:'1H',  bnInterval:'1h',  limit:150 },
-  { key:'tf_4h',  label:'4H',  bnInterval:'4h',  limit:150 },
-  { key:'tf_12h', label:'12H', bnInterval:'12h', limit:150 },
-  { key:'tf_1d',  label:'1D',  bnInterval:'1d',  limit:150 },
+  { key:'tf_4h',  label:'4H',  bnInterval:'4h',  limit:500 },
+  { key:'tf_12h', label:'12H', bnInterval:'12h', limit:500 },
+  { key:'tf_1d',  label:'1D',  bnInterval:'1d',  limit:500 },
   { key:'tf_3d',  label:'3D',  bnInterval:'3d',  limit:150 },
   { key:'tf_1w',  label:'1W',  bnInterval:'1w',  limit:150 },
   { key:'tf_2w',  label:'1w',  bnInterval:'1w',  limit:150, is2W:true }, // 2W = build from 1W
@@ -1592,6 +1592,9 @@ async function fetchKraken(cgId, cgSymbol, bnInterval, limit) {
 const NOT_ON_BINANCE = new Set([
   'whitebit','leo-token','hyperliquid','canton-network',
   'memecore','figure-heloc','wbtusdt',
+  'okb',                // OKB — only on OKX, use Bybit
+  'pi-network',         // PI — very new, limited data
+  'midnight-3',         // MIDNIGHT — new coin, limited data
   'bittensor',          // TAO — use Kraken
   'syrup',              // SYRUP — use Kraken/Bybit
   'non-playable-coin',  // NPC — use Kraken
@@ -1907,6 +1910,16 @@ async function scan() {
             const r = await fetchCandles(c.id, c.symbol, bnSym, tf.bnInterval, Math.min(lim, 1000));
             if (r?.candles?.length > 0) {
               cacheCandles(c.id, tf.key, r.candles);
+              // Track data kwaliteit per coin per TF
+              if (!DATA_QUALITY[c.id]) DATA_QUALITY[c.id] = {};
+              DATA_QUALITY[c.id][tf.key] = {
+                bars:     r.candles.length,
+                exchange: r.exchange || usedExchange,
+                ok:       r.candles.length >= 80,
+              };
+            } else {
+              if (!DATA_QUALITY[c.id]) DATA_QUALITY[c.id] = {};
+              DATA_QUALITY[c.id][tf.key] = { bars: 0, exchange: 'none', ok: false };
             }
             candles = r.candles;
             usedExchange = r.exchange;
@@ -1937,6 +1950,8 @@ async function scan() {
       const avg = tCount > 0 ? tScore / tCount : 0;
       const ov = avg >= 1.5 ? 'bullish' : avg <= -1.5 ? 'bearish' : 'neutral';
 
+      // Skip als deze coin al in DATA staat (voorkomt duplicaten)
+      if (DATA.some(d => d.id === c.id)) continue;
       DATA.push({
         rank: idx+1, id:c.id, name:c.name, symbol:c.symbol,
         bnSymbol: bnSym, exchange: usedExchange,
@@ -2476,6 +2491,16 @@ function render() {
     d = d.filter(x => x.verdict === filt);
   }
 
+  // Dedupliceer DATA op coin ID (voorkomt dubbele rijen)
+  const seenIds = new Set();
+  const dedupedData = DATA.filter(c => {
+    if (seenIds.has(c.id)) return false;
+    seenIds.add(c.id);
+    return true;
+  });
+  // Vervang DATA tijdelijk met dedupedData voor render
+  const _origData = DATA.splice(0, DATA.length, ...dedupedData);
+
   const sv = {bullish:2, neutral:1, bearish:0};
   d.sort((a, b) => {
     let va, vb;
@@ -2517,7 +2542,7 @@ function render() {
       <td><div class="cc">
         <img class="ci" src="${c.image}" alt="" loading="lazy">
         <div>
-          <div class="cn">${c.name} ${typeof volumeIndicator!=='undefined'?volumeIndicator(c):''} ${typeof flipBadge!=='undefined'?flipBadge(c):''}</div>
+          <div class="cn">${c.name} ${typeof volumeIndicator!=='undefined'?volumeIndicator(c):''} ${typeof flipBadge!=='undefined'?flipBadge(c):''}${(()=>{const q=DATA_QUALITY[c.id];if(!q)return '';const bad4h=q.tf_4h&&!q.tf_4h.ok;const bad1d=q.tf_1d&&!q.tf_1d.ok;return bad4h||bad1d?'<span title="Onvoldoende candle data — signals minder betrouwbaar" style="color:#ff8800;font-size:9px;cursor:help"> ⚠️</span>':'';})()} </div>
           <div class="cs">${c.symbol.toUpperCase()} · <span style="color:var(--acc2);font-size:9px">${c.exchange||'?'}</span></div>
         </div>
       </div></td>
@@ -5338,6 +5363,7 @@ function setSigFilter(type, val, btn) {
 
 // ── Candle cache ─────────────────────────────────────────────────────────
 const SIGNAL_CANDLE_CACHE = {};
+const DATA_QUALITY = {}; // coinId → { tf_4h: {bars, exchange, ok}, tf_1d: ... }
 function cacheCandles(coinId, tfKey, candles) {
   if (!SIGNAL_CANDLE_CACHE[coinId]) SIGNAL_CANDLE_CACHE[coinId] = {};
   SIGNAL_CANDLE_CACHE[coinId][tfKey] = candles;
@@ -5367,6 +5393,11 @@ function analyseSignal(coin, tfKey, tfLabel) {
   if (!tf || !tf.vals) return null;
 
   const candles  = SIGNAL_CANDLE_CACHE[coin.id]?.[tfKey];
+
+  // ── Data kwaliteitscheck via candle cache ─────────────────────────────
+  // Minimaal 80 bars nodig voor betrouwbare Ichimoku (senkou 52 + disp 26 + buffer)
+  if (candles && candles.length < 80) return null;
+
   const score    = tf.score ?? 0;
   const verdict  = tf.verdict;
   const vals     = tf.vals;
@@ -5505,8 +5536,14 @@ function runSignalScan() {
   const has4H = Object.values(SIGNAL_CANDLE_CACHE).filter(c => c.tf_4h?.length > 0).length;
   const has1D = Object.values(SIGNAL_CANDLE_CACHE).filter(c => c.tf_1d?.length > 0).length;
 
+  // Data kwaliteit rapport
+  const good4H    = Object.values(DATA_QUALITY).filter(q => q.tf_4h?.ok).length;
+  const good1D    = Object.values(DATA_QUALITY).filter(q => q.tf_1d?.ok).length;
+  const bad4H     = Object.values(DATA_QUALITY).filter(q => q.tf_4h && !q.tf_4h.ok).map((q,i) => Object.keys(DATA_QUALITY)[i]).filter(Boolean);
+  const noData    = DATA.filter(d => !DATA_QUALITY[d.id] || (!DATA_QUALITY[d.id].tf_4h && !DATA_QUALITY[d.id].tf_1d)).map(d => d.symbol.toUpperCase());
+
   if (cachedCoins === 0) {
-    if (status) status.textContent = '⏳ Geen candle data. Ga naar Scanner en wacht tot de scan klaar is (±2 min).';
+    if (status) status.textContent = '⏳ Geen candle data. Ga naar Scanner en wacht tot de scan klaar is (±5 min).';
     if (document.getElementById('signalCards')) {
       document.getElementById('signalCards').innerHTML =
         '<div style="text-align:center;padding:40px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">' +
@@ -5547,7 +5584,12 @@ function runSignalScan() {
   if (status) {
     const longs  = SIGNALS_DATA.filter(s => s.direction === 'long').length;
     const shorts = SIGNALS_DATA.filter(s => s.direction === 'short').length;
-    status.textContent = `⚡ ${SIGNALS_DATA.length} signals (${longs} long · ${shorts} short) — ${DATA.length} coins × 2 TFs geanalyseerd`;
+    const good4H = Object.values(DATA_QUALITY).filter(q => q.tf_4h?.ok).length;
+    const good1D = Object.values(DATA_QUALITY).filter(q => q.tf_1d?.ok).length;
+    const qualWarn = (good4H < DATA.length || good1D < DATA.length)
+      ? ` · ⚠️ ${DATA.length - Math.min(good4H, good1D)} coins onvoldoende data`
+      : ' · ✅ alle data volledig';
+    status.textContent = `⚡ ${SIGNALS_DATA.length} signals (${longs} long · ${shorts} short) — ${good4H}/${DATA.length} 4H ok · ${good1D}/${DATA.length} 1D ok${qualWarn}`;
   }
 
   renderSignalsTab();
