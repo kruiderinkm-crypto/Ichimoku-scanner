@@ -2845,7 +2845,73 @@ function openModal(id) {
     '</div>' +
   '</div>';
 
-  document.getElementById('mBody').innerHTML = tvHtml + triggerHtml + targetsHtml + momentumHtml + '<div class="mg">' + cards + '</div>' + sigHtml + valsHtml;
+  // ── Signal targets in modal ────────────────────────────────────────────
+  // Zoek of deze coin een actief signal heeft in SIGNALS_DATA
+  let signalTargetsHtml = '';
+  if (typeof SIGNALS_DATA !== 'undefined' && SIGNALS_DATA.length > 0) {
+    const coinSignals = SIGNALS_DATA.filter(s => s.id === c.id);
+    if (coinSignals.length > 0) {
+      signalTargetsHtml = '<div style="margin-bottom:16px">' +
+        '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">⚡ Signal Targets</div>' +
+        coinSignals.map(s => {
+          const isLong = s.direction === 'long';
+          const dirCol = isLong ? '#00ffa3' : 'var(--bear)';
+          const riskPct = s.riskPct ? s.riskPct.toFixed(2) + '%' : '–';
+          return '<div style="background:' + (isLong ? 'rgba(0,255,163,.06)' : 'rgba(255,77,77,.06)') + ';border:1px solid ' + (isLong ? 'rgba(0,255,163,.2)' : 'rgba(255,77,77,.2)') + ';border-radius:12px;padding:14px 18px;margin-bottom:8px">' +
+            // Header
+            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">' +
+              '<span style="font-family:Syne,sans-serif;font-weight:800;font-size:16px;color:' + dirCol + '">' + (isLong ? '▲ LONG' : '▼ SHORT') + '</span>' +
+              '<span style="font-family:JetBrains Mono,monospace;font-size:10px;background:var(--ink-3);color:var(--tx-3);padding:2px 8px;border-radius:5px">' + s.tfLabel + '</span>' +
+              (s.volRatio ? '<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);margin-left:auto">' + s.volRatio.toFixed(1) + '× volume</span>' : '') +
+            '</div>' +
+            // Targets grid
+            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">' +
+              // Entry
+              '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;text-align:center">' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">ENTRY</div>' +
+                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--tx-1)">$' + fmtP(s.entry) + '</div>' +
+              '</div>' +
+              // Target 2R
+              '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;text-align:center">' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">TARGET 2R</div>' +
+                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target2R) + '</div>' +
+              '</div>' +
+              // Target 3R
+              '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;text-align:center">' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">TARGET 3R</div>' +
+                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target3R) + '</div>' +
+              '</div>' +
+              // Target 4R
+              '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;text-align:center">' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">TARGET 4R</div>' +
+                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target4R) + '</div>' +
+              '</div>' +
+              // Stop Loss
+              '<div style="background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:8px;padding:10px;text-align:center">' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--bear);margin-bottom:4px">STOP LOSS</div>' +
+                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--bear)">$' + fmtP(s.stopLoss) + '</div>' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-top:2px">-' + riskPct + '</div>' +
+              '</div>' +
+              // Invalidation
+              '<div style="background:rgba(255,50,50,.04);border-radius:8px;padding:10px;text-align:center">' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">INVALIDATION</div>' +
+                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--tx-3)">$' + fmtP(s.invalidation) + '</div>' +
+              '</div>' +
+            '</div>' +
+            // Range info
+            (s.rangePct != null ?
+              '<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);padding-top:8px;border-top:1px solid rgba(255,255,255,.05)">' +
+                'Range: ' + s.rangePct + '% tight &nbsp;·&nbsp; ' +
+                'High: $' + fmtP(s.rangeHigh) + ' &nbsp;·&nbsp; ' +
+                'Low: $' + fmtP(s.rangeLow) +
+              '</div>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }
+  }
+
+  document.getElementById('mBody').innerHTML = tvHtml + signalTargetsHtml + triggerHtml + targetsHtml + momentumHtml + '<div class="mg">' + cards + '</div>' + sigHtml + valsHtml;
   document.getElementById('overlay').classList.add('open');
 
   // Load chart after DOM is ready
