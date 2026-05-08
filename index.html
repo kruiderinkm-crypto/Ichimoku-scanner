@@ -655,7 +655,7 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
         <button class="btn" onclick="doRefresh()" style="flex:1;font-size:9px;padding:4px 6px">↺ Refresh</button>
       <button class="btn" onclick="localStorage.removeItem('cg_top100_cache');doRefresh()" title="Cache legen en opnieuw laden" style="font-size:9px;padding:4px 6px">🔄</button>
       </div>
-      <select onchange="cd=+this.value||300;doRefresh()" style="background:var(--ink-3);border:1px solid var(--line);color:var(--tx-2);padding:4px 6px;border-radius:5px;font-family:JetBrains Mono,monospace;font-size:9px;outline:none;width:100%">
+      <select id="selIv" onchange="cd=+this.value||300;doRefresh()" style="background:var(--ink-3);border:1px solid var(--line);color:var(--tx-2);padding:4px 6px;border-radius:5px;font-family:JetBrains Mono,monospace;font-size:9px;outline:none;width:100%">
         <option value="300">Auto 5 min</option><option value="600">Auto 10 min</option><option value="1800">Auto 30 min</option><option value="0">Handmatig</option>
       </select>
     </div>
@@ -719,7 +719,7 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
       <input type="checkbox" id="dualProfile" checked style="width:15px;height:15px;cursor:pointer;accent-color:var(--acc)">
     </div>
     <div class="cg"><label>Auto-refresh</label>
-      <select id="selIv">
+      <select id="selIv_hidden">
         <option value="300">5 min</option>
         <option value="600">10 min</option>
         <option value="1800">30 min</option>
@@ -5442,7 +5442,8 @@ function analyseSignal(coin, tfKey, tfLabel) {
 
     // Minimaal vereist volume:
     // 4H: 1.5×, 1D: 1.4×
-    const minVol = tfKey === 'tf_4h' ? 1.5 : 1.4;
+    // 1.2x realistisch in consoliderende markt (was 1.5x - te streng)
+    const minVol = tfKey === 'tf_4h' ? 1.2 : 1.1;
     if (volRatio < minVol) return null;
 
     // Range van laatste 8 bars
@@ -5460,17 +5461,20 @@ function analyseSignal(coin, tfKey, tfLabel) {
     // Long: prijs moet in bovenste 40% van range zijn (klaar voor uitbraak)
     // Short: prijs moet in onderste 40% van range zijn
     const rangePos = (price - rangeLow) / (rangeHigh - rangeLow);
-    if (isLong  && rangePos < 0.45) return null; // te laag in range
-    if (!isLong && rangePos > 0.55) return null; // te hoog in range
+    if (isLong  && rangePos < 0.30) return null;
+    if (!isLong && rangePos > 0.70) return null;
   } else {
     // Geen candles — gebruik strengere Ichimoku score drempel als fallback
     if (Math.abs(score) < 3.5) return null;
   }
 
-  // ── Criterium 6: TK cross klopt ──────────────────────────────────────
-  if (!isNaN(tenkan) && !isNaN(kijun)) {
-    if (isLong  && tenkan < kijun) return null; // bearish TK = geen long
-    if (!isLong && tenkan > kijun) return null; // bullish TK = geen short
+  // ── Criterium 6: TK positie — geen harde blocker maar verhoogt kwaliteit ─
+  // Als TK cross tegenstrijdig is: laat het signaal door maar verlaag de score
+  // Alleen blokkeren als TK ver aan de verkeerde kant staat (>0.5% verschil)
+  if (!isNaN(tenkan) && !isNaN(kijun) && price > 0) {
+    const tkDiffPct = (tenkan - kijun) / price * 100;
+    if (isLong  && tkDiffPct < -0.5) return null; // TK duidelijk bearish
+    if (!isLong && tkDiffPct >  0.5) return null; // TK duidelijk bullish
   }
 
   // ── Prijs targets berekenen ──────────────────────────────────────────
