@@ -1259,7 +1259,8 @@ const TFS = [
   { key:'tf_2w',  label:'1w',  bnInterval:'1w',  limit:150, is2W:true }, // 2W = build from 1W
 ];
 
-let DATA = [], filt = 'all', srt = {k:'rank',d:'asc'}, cd = 300;
+let DATA = [];
+const DATA_QUALITY = {}; // coinId → { tf_key: {bars, exchange, ok} }, filt = 'all', srt = {k:'rank',d:'asc'}, cd = 300;
 
 // ═══════════════════════════════════════════════════════════
 // PARAMS
@@ -2795,7 +2796,7 @@ function render() {
       <td><div class="cc">
         <img class="ci" src="${c.image}" alt="" loading="lazy">
         <div>
-          <div class="cn">${c.name} ${typeof volumeIndicator!=='undefined'?volumeIndicator(c):''} ${typeof flipBadge!=='undefined'?flipBadge(c):''}${(()=>{const q=DATA_QUALITY[c.id];if(!q)return '';const bad4h=q.tf_4h&&!q.tf_4h.ok;const bad1d=q.tf_1d&&!q.tf_1d.ok;return bad4h||bad1d?'<span title="Onvoldoende candle data — signals minder betrouwbaar" style="color:#ff8800;font-size:9px;cursor:help"> ⚠️</span>':'';})()} </div>
+          <div class="cn">${c.name} ${typeof volumeIndicator!=='undefined'?volumeIndicator(c):''} ${typeof flipBadge!=='undefined'?flipBadge(c):''}${(()=>{const q=typeof DATA_QUALITY!=='undefined'?DATA_QUALITY[c.id]:null;if(!q)return '';const bad4h=q.tf_4h&&!q.tf_4h.ok;const bad1d=q.tf_1d&&!q.tf_1d.ok;return bad4h||bad1d?'<span title="Onvoldoende candle data — signals minder betrouwbaar" style="color:#ff8800;font-size:9px;cursor:help"> ⚠️</span>':'';})()} </div>
           <div class="cs">${c.symbol.toUpperCase()} · <span style="color:var(--acc2);font-size:9px">${c.exchange||'?'}</span></div>
         </div>
       </div></td>
