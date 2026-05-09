@@ -838,44 +838,51 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
   <div class="tab-pane" id="tab-signals">
 
     <!-- Header -->
-    <div style="margin-bottom:20px">
-      <h2 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px">SIGNALS</h2>
-      <p style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3);line-height:1.6">
-        Volume spike binnen een krappe horizontale range — accumulatie vóór breakout.<br>
-        Long signalen vuren als prijs consolideert en volume plots stijgt boven gemiddelde.
+    <div style="margin-bottom:18px">
+      <h2 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px">⚡ FLAGSHIP SIGNALS</h2>
+      <p style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--tx-3);line-height:1.7">
+        Vijf Ichimoku condities gestapeld · <span style="color:#ffc400">EARLY</span> = Chikou nog in cloud · <span style="color:#00ffa3">CONFIRMED</span> = Chikou volledig vrij<br>
+        <span style="color:#7a8aaa">WEAK</span> = 1 bevestiging · <span style="color:#ffc400">MEDIUM</span> = 2 bevestigingen · <span style="color:#00ffa3">STRONG</span> = 3 + bonussen
       </p>
     </div>
 
-    <!-- Filters -->
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-      <!-- TF filter -->
-      <div style="background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:3px;display:flex;gap:2px" id="sigTFFilter">
+    <!-- Filter rij 1: TF + Richting -->
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <div style="background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:3px;display:flex;gap:2px" id="sigFTF">
         <button class="sig-ft active" onclick="setSigFilter('tf','all',this)">ALL</button>
         <button class="sig-ft" onclick="setSigFilter('tf','4h',this)">4H</button>
         <button class="sig-ft" onclick="setSigFilter('tf','1d',this)">1D</button>
       </div>
-      <!-- Direction filter -->
-      <div style="background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:3px;display:flex;gap:2px" id="sigDirFilter">
+      <div style="background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:3px;display:flex;gap:2px" id="sigFDir">
         <button class="sig-ft active" onclick="setSigFilter('dir','all',this)">ALL</button>
         <button class="sig-ft" onclick="setSigFilter('dir','long',this)" style="color:#00ffa3">LONG</button>
         <button class="sig-ft" onclick="setSigFilter('dir','short',this)" style="color:var(--bear)">SHORT</button>
       </div>
-      <!-- Ichimoku filter -->
-      <div style="display:flex;align-items:center;gap:6px;background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:5px 12px">
-        <input type="checkbox" id="sigIchiFilter" checked onchange="renderSignalsTab()" style="accent-color:var(--acc);cursor:pointer">
-        <label for="sigIchiFilter" style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-2);cursor:pointer">Alleen Ichimoku bullish/bearish</label>
-      </div>
-      <!-- Refresh -->
       <button class="btn" onclick="runSignalScan()" style="margin-left:auto;font-size:10px;padding:6px 14px">↻ Scan</button>
+    </div>
+
+    <!-- Filter rij 2: Type + Conviction -->
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:3px;display:flex;gap:2px" id="sigFType">
+        <button class="sig-ft active" onclick="setSigFilter('type','all',this)">ALL</button>
+        <button class="sig-ft" onclick="setSigFilter('type','early',this)" style="color:#ffc400">EARLY</button>
+        <button class="sig-ft" onclick="setSigFilter('type','confirmed',this)" style="color:#00ffa3">CONFIRMED</button>
+      </div>
+      <div style="background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:3px;display:flex;gap:2px" id="sigFConv">
+        <button class="sig-ft active" onclick="setSigFilter('conv','all',this)">ALL</button>
+        <button class="sig-ft" onclick="setSigFilter('conv','weak',this)" style="color:#7a8aaa">WEAK</button>
+        <button class="sig-ft" onclick="setSigFilter('conv','medium',this)" style="color:#ffc400">MEDIUM</button>
+        <button class="sig-ft" onclick="setSigFilter('conv','strong',this)" style="color:#00ffa3">STRONG</button>
+      </div>
     </div>
 
     <!-- Status -->
     <div id="sigStatus" style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--tx-3);margin-bottom:12px"></div>
 
     <!-- Signal cards -->
-    <div id="signalCards" style="display:flex;flex-direction:column;gap:8px">
+    <div id="signalCards" style="display:flex;flex-direction:column;gap:10px">
       <div style="text-align:center;padding:60px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">
-        ⚡ Klik op Scan om signals te laden...
+        ⚡ Wacht op scan data...
       </div>
     </div>
 
@@ -2342,105 +2349,351 @@ function generateSignal(coin) {
 // ═══════════════════════════════════════════════════════════
 // PRIJS TARGETS op basis van Ichimoku (1D timeframe)
 // ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// GEAVANCEERDE PRIJS TARGETS
+// Gebaseerd op:
+// 1. Swing highs/lows (vorige pieken en dalen)
+// 2. Fibonacci extensies (1.272, 1.618, 2.0, 2.618)
+// 3. Fibonacci retracements (0.382, 0.5, 0.618)
+// 4. Ichimoku levels (Kijun, Tenkan, Cloud — meerdere TFs)
+// 5. ATR voor stop loss
+// ═══════════════════════════════════════════════════════════
+
+// ── Helper: vind swing highs en lows in candle data ──────────────────────
+function findSwings(candles, lookback) {
+  if (!candles || candles.length < lookback * 2 + 1) return { highs: [], lows: [] };
+  const highs = [], lows = [];
+  const n = candles.length;
+  // Gebruik de laatste 'lookback' bars
+  const start = Math.max(lookback, n - 150);
+
+  for (let i = start; i < n - lookback; i++) {
+    const c = candles[i];
+    // Swing high: hoger dan lookback bars links en rechts
+    let isHigh = true, isLow = true;
+    for (let j = i - lookback; j <= i + lookback; j++) {
+      if (j === i) continue;
+      if (j < 0 || j >= n) continue;
+      if (candles[j].h >= c.h) isHigh = false;
+      if (candles[j].l <= c.l) isLow  = false;
+    }
+    if (isHigh) highs.push({ price: c.h, idx: i });
+    if (isLow)  lows.push({  price: c.l, idx: i });
+  }
+  return { highs, lows };
+}
+
+// ── Helper: bereken ATR (Average True Range) ──────────────────────────────
+function calcATR(candles, period) {
+  if (!candles || candles.length < period + 1) return null;
+  const n = candles.length;
+  let sum = 0;
+  for (let i = n - period; i < n; i++) {
+    const high  = candles[i].h;
+    const low   = candles[i].l;
+    const prev  = candles[i - 1]?.c ?? candles[i].o;
+    const tr    = Math.max(high - low, Math.abs(high - prev), Math.abs(low - prev));
+    sum += tr;
+  }
+  return sum / period;
+}
+
+// ── Helper: vind dichtstbijzijnde level uit een array ─────────────────────
+function nearestLevel(levels, price, direction) {
+  // direction: 'above' of 'below'
+  const filtered = direction === 'above'
+    ? levels.filter(l => l > price * 1.001)
+    : levels.filter(l => l < price * 0.999);
+  if (filtered.length === 0) return null;
+  return direction === 'above'
+    ? Math.min(...filtered)   // dichtstbijzijnde boven
+    : Math.max(...filtered);  // dichtstbijzijnde onder
+}
+
+// ── Hoofd target berekening ───────────────────────────────────────────────
 function calcPriceTargets(coin) {
-  const day = coin.tf_1d;
-  if (!day || !day.vals || !day.vals.tenkan || isNaN(day.vals.tenkan)) return null;
+  const day  = coin.tf_1d;
+  const h4   = coin.tf_4h;
+  const week = coin.tf_1w;
 
-  const v     = day.vals;
-  const price = v.price;
-  const kijun = v.kijun;
-  const tenkan = v.tenkan;
-  const cloudTop = v.cloudTop;
-  const cloudBot = v.cloudBot;
-  const senkouA  = v.senkouA;
-  const senkouB  = v.senkouB;
+  if (!day?.vals?.price) return null;
 
-  const bullish = coin.verdict === 'bullish';
-  const bearish = coin.verdict === 'bearish';
+  const price    = day.vals.price;
+  const isLong   = coin.verdict === 'bullish';
+  const isBear   = coin.verdict === 'bearish';
+  const isNeut   = coin.verdict === 'neutral';
 
-  // ── KOOP TARGET ──────────────────────────────
-  // Beste instap = pullback naar support
-  // Prioriteit: Tenkan → Kijun → Cloud Top → Cloud Bot
+  // Haal candles op uit cache (1D voor swing, 4H voor ATR)
+  const candles1d = SIGNAL_CANDLE_CACHE[coin.id]?.tf_1d;
+  const candles4h = SIGNAL_CANDLE_CACHE[coin.id]?.tf_4h;
+
+  // ── STAP 1: ATR-gebaseerde stop loss ──────────────────────────────────
+  const atr1d  = calcATR(candles1d, 14) || price * 0.03;
+  const atr4h  = calcATR(candles4h, 14) || price * 0.015;
+
+  // ── STAP 2: Swing highs en lows ───────────────────────────────────────
+  const swings1d = findSwings(candles1d, 5);
+  const swings4h = findSwings(candles4h, 5);
+
+  // Recente swing high/low (laatste 2)
+  const recentHighs = [...swings1d.highs, ...swings4h.highs]
+    .sort((a, b) => b.idx - a.idx)
+    .slice(0, 5)
+    .map(s => s.price);
+
+  const recentLows = [...swings1d.lows, ...swings4h.lows]
+    .sort((a, b) => b.idx - a.idx)
+    .slice(0, 5)
+    .map(s => s.price);
+
+  // Meest recente swing high en low voor Fibonacci
+  const lastSwingHigh = recentHighs.length > 0 ? Math.max(...recentHighs.slice(0, 3)) : null;
+  const lastSwingLow  = recentLows.length  > 0 ? Math.min(...recentLows.slice(0,  3)) : null;
+
+  // ── STAP 3: Fibonacci levels berekenen ───────────────────────────────
+  const fibLevels = [];
+  const fibLabels = {};
+
+  if (lastSwingHigh && lastSwingLow) {
+    const range = lastSwingHigh - lastSwingLow;
+
+    if (isLong) {
+      // Bij long: Fibonacci extensies OMHOOG (van swing low naar swing high)
+      // Extensies: price boven swing high
+      const ext = [
+        { r: 1.0,   label: 'Fib 1.0 (prev High)'  },
+        { r: 1.272, label: 'Fib 1.272'             },
+        { r: 1.618, label: 'Fib 1.618 (Golden)'    },
+        { r: 2.0,   label: 'Fib 2.0'               },
+        { r: 2.618, label: 'Fib 2.618'             },
+      ];
+      ext.forEach(e => {
+        const lvl = lastSwingLow + range * e.r;
+        if (lvl > price * 1.005) {
+          fibLevels.push(lvl);
+          fibLabels[lvl.toFixed(8)] = e.label;
+        }
+      });
+
+      // Fibonacci retracements als stop loss zones
+      const rets = [
+        { r: 0.786, label: 'Fib 0.786' },
+        { r: 0.618, label: 'Fib 0.618 (Golden)' },
+        { r: 0.5,   label: 'Fib 0.5' },
+      ];
+      rets.forEach(e => {
+        const lvl = lastSwingHigh - range * e.r;
+        if (lvl < price * 0.999) {
+          fibLevels.push(lvl);
+          fibLabels[lvl.toFixed(8)] = e.label;
+        }
+      });
+
+    } else if (isBear) {
+      // Bij short: extensies OMLAAG
+      const ext = [
+        { r: 1.0,   label: 'Fib 1.0 (prev Low)'   },
+        { r: 1.272, label: 'Fib 1.272'             },
+        { r: 1.618, label: 'Fib 1.618 (Golden)'    },
+        { r: 2.0,   label: 'Fib 2.0'               },
+        { r: 2.618, label: 'Fib 2.618'             },
+      ];
+      ext.forEach(e => {
+        const lvl = lastSwingHigh - range * e.r;
+        if (lvl < price * 0.995) {
+          fibLevels.push(lvl);
+          fibLabels[lvl.toFixed(8)] = e.label;
+        }
+      });
+    }
+  }
+
+  // ── STAP 4: Ichimoku levels verzamelen ───────────────────────────────
+  // Van 1D, 4H en 1W — meerdere timeframes
+  const ichiLevels = [];
+  const ichiLabels = {};
+
+  const addIchi = (vals, prefix) => {
+    if (!vals) return;
+    const items = [
+      { v: vals.tenkan,   l: prefix + ' Tenkan'   },
+      { v: vals.kijun,    l: prefix + ' Kijun'    },
+      { v: vals.cloudTop, l: prefix + ' Cloud Top' },
+      { v: vals.cloudBot, l: prefix + ' Cloud Bot' },
+    ];
+    items.forEach(({ v, l }) => {
+      if (v && !isNaN(v) && v > 0) {
+        ichiLevels.push(v);
+        ichiLabels[v.toFixed(8)] = l;
+      }
+    });
+  };
+
+  addIchi(day?.vals,  '1D');
+  addIchi(h4?.vals,   '4H');
+  addIchi(week?.vals, '1W');
+
+  // ── STAP 5: Alle levels samenvoegen en clusteren ─────────────────────
+  // Combineer: swing highs/lows + fib levels + ichimoku levels
+  const allResistances = [...fibLevels, ...ichiLevels, ...recentHighs]
+    .filter(l => !isNaN(l) && l > price * 1.002)
+    .sort((a, b) => a - b);
+
+  const allSupports = [...fibLevels, ...ichiLevels, ...recentLows]
+    .filter(l => !isNaN(l) && l < price * 0.998)
+    .sort((a, b) => b - a);
+
+  // Cluster levels die binnen 0.5% van elkaar liggen
+  function clusterLevels(levels) {
+    if (levels.length === 0) return [];
+    const clustered = [levels[0]];
+    for (let i = 1; i < levels.length; i++) {
+      const prev = clustered[clustered.length - 1];
+      if (Math.abs(levels[i] - prev) / prev > 0.005) {
+        clustered.push(levels[i]);
+      }
+    }
+    return clustered;
+  }
+
+  const resistances = clusterLevels(allResistances);
+  const supports    = clusterLevels(allSupports);
+
+  // ── STAP 6: Stop loss bepalen ─────────────────────────────────────────
+  let stopLoss, stopLabel;
+
+  if (isLong) {
+    // Long stop: onder dichtstbijzijnde support OF 1.5× ATR onder prijs
+    const atrStop    = price - atr1d * 1.5;
+    const swingStop  = supports[0] ? supports[0] * 0.995 : null; // iets onder support
+    const kijunStop  = day?.vals?.kijun && day.vals.kijun < price ? day.vals.kijun * 0.992 : null;
+
+    // Kies het hoogste (minst riskante) dat nog onder de prijs is
+    const candidates = [atrStop, swingStop, kijunStop].filter(Boolean).filter(v => v < price);
+    if (candidates.length > 0) {
+      stopLoss  = Math.max(...candidates);
+      stopLabel = stopLoss === atrStop    ? '1.5× ATR'
+                : stopLoss === kijunStop  ? '1D Kijun'
+                : 'Swing Low';
+    } else {
+      stopLoss  = price - atr1d * 2;
+      stopLabel = '2× ATR';
+    }
+  } else if (isBear) {
+    const atrStop   = price + atr1d * 1.5;
+    const swingStop = resistances[0] ? resistances[0] * 1.005 : null;
+    const kijunStop = day?.vals?.kijun && day.vals.kijun > price ? day.vals.kijun * 1.008 : null;
+    const candidates = [atrStop, swingStop, kijunStop].filter(Boolean).filter(v => v > price);
+    stopLoss  = candidates.length > 0 ? Math.min(...candidates) : price + atr1d * 2;
+    stopLabel = '1.5× ATR / Swing High';
+  } else {
+    stopLoss  = price - atr1d * 1.5;
+    stopLabel = '1.5× ATR';
+  }
+
+  const risk = Math.abs(price - stopLoss);
+
+  // ── STAP 7: Targets bepalen ───────────────────────────────────────────
+  // Gebruik resistance/support levels als primaire targets
+  // Maar controleer ook of ze > 1R zijn (anders zinloos)
+
+  let targets = [];
+
+  if (isLong) {
+    // Target 1: eerste resistance boven prijs
+    // Target 2: tweede resistance of Fib 1.272
+    // Target 3: derde resistance of Fib 1.618
+
+    const fib1272 = lastSwingLow && lastSwingHigh
+      ? lastSwingLow + (lastSwingHigh - lastSwingLow) * 1.272 : null;
+    const fib1618 = lastSwingLow && lastSwingHigh
+      ? lastSwingLow + (lastSwingHigh - lastSwingLow) * 1.618 : null;
+    const fib2618 = lastSwingLow && lastSwingHigh
+      ? lastSwingLow + (lastSwingHigh - lastSwingLow) * 2.618 : null;
+
+    // Pak de dichtstbijzijnde resistances en fib levels
+    const t1candidates = resistances.filter(r => r > price + risk * 0.8).slice(0, 3);
+    const t1 = t1candidates[0] || (price + risk * 1.5);
+    const t1label = fibLabels[t1.toFixed(8)] || ichiLabels[t1.toFixed(8)] || '1e Weerstand';
+
+    const t2candidates = resistances.filter(r => r > (t1 || price) * 1.005);
+    const t2 = fib1272 && fib1272 > t1 ? fib1272
+              : t2candidates[0] || (price + risk * 2.5);
+    const t2label = fibLabels[t2.toFixed(8)] || ichiLabels[t2.toFixed(8)] || 'Fib 1.272';
+
+    const t3candidates = resistances.filter(r => r > (t2 || price) * 1.005);
+    const t3 = fib1618 && fib1618 > t2 ? fib1618
+              : t3candidates[0] || (price + risk * 4);
+    const t3label = fibLabels[t3.toFixed(8)] || ichiLabels[t3.toFixed(8)] || 'Fib 1.618';
+
+    const t4 = fib2618 && fib2618 > t3 ? fib2618 : (price + risk * 6);
+    const t4label = 'Fib 2.618';
+
+    targets = [
+      { price: t1, label: t1label, rr: +((t1 - price) / risk).toFixed(1) },
+      { price: t2, label: t2label, rr: +((t2 - price) / risk).toFixed(1) },
+      { price: t3, label: t3label, rr: +((t3 - price) / risk).toFixed(1) },
+      { price: t4, label: t4label, rr: +((t4 - price) / risk).toFixed(1) },
+    ].filter(t => t.price > price && t.rr > 0.5);
+
+  } else if (isBear) {
+    const fib1272 = lastSwingLow && lastSwingHigh
+      ? lastSwingHigh - (lastSwingHigh - lastSwingLow) * 1.272 : null;
+    const fib1618 = lastSwingLow && lastSwingHigh
+      ? lastSwingHigh - (lastSwingHigh - lastSwingLow) * 1.618 : null;
+
+    const t1 = supports[0] || (price - risk * 1.5);
+    const t1label = ichiLabels[t1.toFixed(8)] || 'Support 1';
+    const t2 = fib1272 && fib1272 < t1 ? fib1272 : (supports[1] || price - risk * 2.5);
+    const t2label = 'Fib 1.272';
+    const t3 = fib1618 && fib1618 < t2 ? fib1618 : (price - risk * 4);
+    const t3label = 'Fib 1.618';
+
+    targets = [
+      { price: t1, label: t1label, rr: +((price - t1) / risk).toFixed(1) },
+      { price: t2, label: t2label, rr: +((price - t2) / risk).toFixed(1) },
+      { price: t3, label: t3label, rr: +((price - t3) / risk).toFixed(1) },
+    ].filter(t => t.price < price && t.rr > 0.5);
+  }
+
+  // ── STAP 8: Entry / buy zone ──────────────────────────────────────────
+  // Beste entry is Tenkan of Kijun als prijs er boven staat
   let buyTarget = null, buyLabel = null;
 
-  if (bullish) {
-    if (!isNaN(tenkan) && tenkan < price && tenkan > cloudTop) {
-      buyTarget = tenkan; buyLabel = 'Tenkan-sen';
-    } else if (!isNaN(kijun) && kijun < price && kijun > cloudBot) {
-      buyTarget = kijun; buyLabel = 'Kijun-sen';
-    } else if (!isNaN(cloudTop) && cloudTop < price) {
-      buyTarget = cloudTop; buyLabel = 'Cloud Top';
-    } else if (!isNaN(cloudBot) && cloudBot < price) {
-      buyTarget = cloudBot; buyLabel = 'Cloud Bot';
+  if (isLong) {
+    const tenkan1d = day?.vals?.tenkan;
+    const kijun1d  = day?.vals?.kijun;
+    const tenkan4h = h4?.vals?.tenkan;
+    if (tenkan4h && tenkan4h < price && tenkan4h > (kijun1d || 0)) {
+      buyTarget = tenkan4h; buyLabel = '4H Tenkan (entry)';
+    } else if (tenkan1d && tenkan1d < price) {
+      buyTarget = tenkan1d; buyLabel = '1D Tenkan (entry)';
+    } else if (kijun1d && kijun1d < price) {
+      buyTarget = kijun1d; buyLabel = '1D Kijun (entry)';
     } else {
-      // Prijs al onder cloud maar bullish op andere TFs - wacht op breakout
-      buyTarget = !isNaN(cloudTop) ? cloudTop : price;
-      buyLabel = 'Breakout Cloud';
+      buyTarget = price; buyLabel = 'Market (entry)';
     }
-  } else if (bearish) {
-    // Bij bearish: koop pas na herstel boven cloud
-    buyTarget = !isNaN(cloudTop) ? cloudTop * 1.01 : null;
-    buyLabel = 'Boven Cloud';
-  } else {
-    // Neutral: kijun is de beste entry
-    buyTarget = !isNaN(kijun) ? kijun : null;
-    buyLabel = 'Kijun-sen';
   }
 
-  // ── VERKOOP TARGET ────────────────────────────
-  // Gebaseerd op Ichimoku price projection:
-  // Afstand prijs → cloud wordt gespiegeld boven cloud
-  let sellTarget = null, sellLabel = null;
+  // Sell target = eerste resistance (voor de tabel)
+  const sellTarget = targets[0]?.price || null;
+  const sellLabel  = targets[0]?.label || null;
+  const rr = targets[0] ? targets[0].rr + 'x' : null;
 
-  if (bullish && !isNaN(cloudTop) && !isNaN(cloudBot)) {
-    const cloudThickness = cloudTop - cloudBot;
-    const distanceAboveCloud = price - cloudTop;
-
-    if (distanceAboveCloud > 0) {
-      // Target 1: Prijs + clouddikte (conservative)
-      const t1 = price + cloudThickness;
-      // Target 2: Prijs + (2x afstand prijs tot cloud) (aggressive)
-      const t2 = price + (distanceAboveCloud * 2);
-      // Neem het gemiddelde als primary target
-      sellTarget = (t1 + t2) / 2;
-      sellLabel = 'Proj. Target';
-    } else {
-      // Prijs in of onder cloud - target is cloud top
-      sellTarget = cloudTop;
-      sellLabel = 'Cloud Top';
-    }
-  } else if (bearish && !isNaN(cloudBot)) {
-    // Bij bearish: target is de cloud bodem (weerstand)
-    sellTarget = cloudBot;
-    sellLabel = 'Cloud Bot (weerst.)';
-  } else if (!isNaN(tenkan) && !isNaN(kijun)) {
-    // Neutral: target is de tenkan of kijun weerstand boven prijs
-    const resistance = Math.max(tenkan, kijun);
-    sellTarget = resistance > price ? resistance : price * 1.05;
-    sellLabel = 'Tenkan/Kijun';
-  }
-
-  // ── STOP LOSS ─────────────────────────────────
-  // Stop loss bij cloud bodem (of 5% onder kijun als minder riskant)
-  let stopLoss = null, stopLabel = null;
-  if (!isNaN(cloudBot) && cloudBot < price) {
-    stopLoss = cloudBot * 0.99; // iets onder cloud bot
-    stopLabel = 'Onder Cloud';
-  } else if (!isNaN(kijun)) {
-    stopLoss = kijun * 0.97;
-    stopLabel = 'Onder Kijun';
-  }
-
-  // ── RISK/REWARD ───────────────────────────────
-  let rr = null;
-  if (buyTarget && sellTarget && stopLoss) {
-    const risk   = buyTarget - stopLoss;
-    const reward = sellTarget - buyTarget;
-    if (risk > 0 && reward > 0) rr = (reward / risk).toFixed(1);
-  }
-
-  return { buyTarget, buyLabel, sellTarget, sellLabel, stopLoss, stopLabel, rr };
+  return {
+    buyTarget, buyLabel,
+    sellTarget, sellLabel,
+    stopLoss, stopLabel,
+    rr,
+    targets,        // alle targets voor de modal
+    supports,       // support levels voor referentie
+    resistances,    // resistance levels voor referentie
+    atr: atr1d,
+    swingHigh: lastSwingHigh,
+    swingLow:  lastSwingLow,
+  };
 }
+
 
 function priceTargetHtml(coin) {
   const t = calcPriceTargets(coin);
@@ -2793,28 +3046,64 @@ function openModal(id) {
   const pt = calcPriceTargets(c);
   let targetsHtml = '';
   if (pt) {
-    const rr = pt.rr ? ' &nbsp;·&nbsp; <span style="color:var(--acc-2)">R/R: ' + pt.rr + 'x</span>' : '';
-    targetsHtml = '<div style="background:var(--ink-3);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:16px">' +
-      '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">Prijs Targets (1D Ichimoku)' + rr + '</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">' +
-        '<div style="text-align:center">' +
-          '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-bottom:4px">▲ KOOP BIJ</div>' +
-          '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--bull)">' + (pt.buyTarget ? '$' + fmtP(pt.buyTarget) : '–') + '</div>' +
-          '<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);margin-top:2px">' + (pt.buyLabel||'') + '</div>' +
-        '</div>' +
-        '<div style="text-align:center;border-left:1px solid var(--line);border-right:1px solid var(--line)">' +
-          '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-bottom:4px">◎ HUIDIG</div>' +
-          '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--tx-1)">$' + fmtP(c.price) + '</div>' +
-          '<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);margin-top:2px">Live prijs</div>' +
-        '</div>' +
-        '<div style="text-align:center">' +
-          '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-bottom:4px">▼ VERKOOP BIJ</div>' +
-          '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--bear)">' + (pt.sellTarget ? '$' + fmtP(pt.sellTarget) : '–') + '</div>' +
-          '<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);margin-top:2px">' + (pt.sellLabel||'') + '</div>' +
-        '</div>' +
-      '</div>' +
-      (pt.stopLoss ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-family:JetBrains Mono,monospace;font-size:10px;color:var(--tx-3)">✕ Stop Loss: <span style="color:var(--bear);font-weight:700">$' + fmtP(pt.stopLoss) + '</span> <span style="font-size:9px">(' + (pt.stopLabel||'') + ')</span></div>' : '') +
-    '</div>';
+    const isLong = c.verdict === 'bullish';
+    const dirCol = isLong ? 'var(--bull)' : 'var(--bear)';
+    const atrStr = pt.atr ? ' &nbsp;·&nbsp; ATR: $' + fmtP(pt.atr) : '';
+    const swingStr = (pt.swingHigh && pt.swingLow)
+      ? ' &nbsp;·&nbsp; Swing: $' + fmtP(pt.swingLow) + ' – $' + fmtP(pt.swingHigh) : '';
+
+    // Stop loss + entry row
+    const stopRow = pt.stopLoss
+      ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
+          '<div style="background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:8px;padding:10px;text-align:center">' +
+            '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--bear);margin-bottom:4px">✕ STOP LOSS (' + (pt.stopLabel||'ATR') + ')</div>' +
+            '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:var(--bear)">$' + fmtP(pt.stopLoss) + '</div>' +
+            '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-top:2px">-' + ((Math.abs(c.price - pt.stopLoss)/c.price)*100).toFixed(1) + '% van prijs</div>' +
+          '</div>' +
+          '<div style="background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center">' +
+            '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">◎ ENTRY ZONE (' + (pt.buyLabel||'Markt') + ')</div>' +
+            '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:var(--tx-1)">$' + fmtP(pt.buyTarget || c.price) + '</div>' +
+            '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-top:2px">Huidige: $' + fmtP(c.price) + '</div>' +
+          '</div>' +
+        '</div>' : '';
+
+    // Targets rij
+    const targetsRow = pt.targets && pt.targets.length > 0
+      ? '<div style="margin-bottom:8px">' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Targets (Fibonacci + Swing + Ichimoku)</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(' + Math.min(pt.targets.length, 4) + ',1fr);gap:6px">' +
+          pt.targets.slice(0, 4).map((t, i) => {
+            const pct = ((Math.abs(t.price - c.price) / c.price) * 100).toFixed(1);
+            const intensity = Math.min(1, t.rr / 5);
+            const g = Math.round(120 + intensity * 100);
+            const bgCol = isLong ? 'rgba(0,' + g + ',80,.12)' : 'rgba(200,40,40,.12)';
+            const borderCol = isLong ? 'rgba(0,' + g + ',80,.3)' : 'rgba(200,40,40,.3)';
+            return '<div style="background:' + bgCol + ';border:1px solid ' + borderCol + ';border-radius:8px;padding:10px;text-align:center">' +
+              '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">T' + (i+1) + ' · ' + (t.rr > 0 ? t.rr + 'R' : '') + '</div>' +
+              '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:' + dirCol + '">$' + fmtP(t.price) + '</div>' +
+              '<div style="font-family:JetBrains Mono,monospace;font-size:7.5px;color:var(--tx-3);margin-top:3px">' + t.label + '</div>' +
+              '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:' + dirCol + ';margin-top:2px">+' + pct + '%</div>' +
+            '</div>';
+          }).join('') +
+          '</div>' +
+        '</div>'
+      : '';
+
+    // Key levels (swing highs/lows)
+    const levelsRow = (pt.swingHigh || pt.swingLow)
+      ? '<div style="padding-top:8px;border-top:1px solid var(--line);font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);display:flex;gap:16px;flex-wrap:wrap">' +
+          (pt.swingHigh ? '<span>📈 Swing High: <span style="color:var(--tx-2)">$' + fmtP(pt.swingHigh) + '</span></span>' : '') +
+          (pt.swingLow  ? '<span>📉 Swing Low: <span style="color:var(--tx-2)">$' + fmtP(pt.swingLow) + '</span></span>' : '') +
+          (pt.atr       ? '<span>ATR(14): <span style="color:var(--tx-2)">$' + fmtP(pt.atr) + '</span></span>' : '') +
+        '</div>' : '';
+
+    targetsHtml =
+      '<div style="background:var(--ink-3);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:16px">' +
+        '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">📊 Prijs Analyse (Fibonacci · Swing · Ichimoku · ATR)</div>' +
+        stopRow +
+        targetsRow +
+        levelsRow +
+      '</div>';
   }
 
 
@@ -5418,328 +5707,481 @@ let SIGNALS_DATA = [];
 let sigFilterTF  = 'all';
 let sigFilterDir = 'all';
 
-function setSigFilter(type, val, btn) {
-  if (type === 'tf')  sigFilterTF  = val;
-  if (type === 'dir') sigFilterDir = val;
-  const group = type === 'tf' ? 'sigTFFilter' : 'sigDirFilter';
-  document.getElementById(group)?.querySelectorAll('.sig-ft').forEach(b => b.classList.remove('active'));
-  btn?.classList.add('active');
-  renderSignalsTab();
-}
+// ═══════════════════════════════════════════════════════════
+// FLAGSHIP SIGNAL SYSTEEM — ICHIMOKU STACK
+// Vijf condities · EARLY vs CONFIRMED · WEAK/MEDIUM/STRONG
+// Timeframes: 4H en 1D — volledig onafhankelijke logica
+// ═══════════════════════════════════════════════════════════
+
+// ── State ────────────────────────────────────────────────────────────────
+const SIGNAL_CANDLE_CACHE = {};
+const FLAGSHIP_SIGNALS    = []; // [{...signal data}]
+
+sigFilterTF   = 'all';
+sigFilterDir  = 'all';
+let sigFilterType = 'all'; // all / early / confirmed
+let sigFilterConv = 'all'; // all / weak / medium / strong
 
 // ── Candle cache ─────────────────────────────────────────────────────────
-const SIGNAL_CANDLE_CACHE = {};
-const DATA_QUALITY = {}; // coinId → { tf_4h: {bars, exchange, ok}, tf_1d: ... }
 function cacheCandles(coinId, tfKey, candles) {
   if (!SIGNAL_CANDLE_CACHE[coinId]) SIGNAL_CANDLE_CACHE[coinId] = {};
   SIGNAL_CANDLE_CACHE[coinId][tfKey] = candles;
 }
 
-// ── Helper: Donchian (high/low over n bars) ──────────────────────────────
-function sigDonchian(candles, period, idx) {
-  const start = Math.max(0, idx - period + 1);
-  let hi = -Infinity, lo = Infinity;
-  for (let i = start; i <= idx; i++) {
-    if (candles[i].h > hi) hi = candles[i].h;
-    if (candles[i].l < lo) lo = candles[i].l;
-  }
-  return { hi, lo };
+// ── Filter UI ─────────────────────────────────────────────────────────────
+function setSigFilter(type, val, btn) {
+  if (type === 'tf')   sigFilterTF   = val;
+  if (type === 'dir')  sigFilterDir  = val;
+  if (type === 'type') sigFilterType = val;
+  if (type === 'conv') sigFilterConv = val;
+  const groupMap = { tf:'sigFTF', dir:'sigFDir', type:'sigFType', conv:'sigFConv' };
+  document.getElementById(groupMap[type])?.querySelectorAll('.sig-ft').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+  renderSignalsTab();
 }
 
-// ── Analyse één coin op één specifiek TF ─────────────────────────────────
-// Criteria:
-// 1. Ichimoku score sterk genoeg (≥ 2.5 voor long, ≤ -2.5 voor short)
-// 2. Prijs staat BUITEN de cloud (niet erin) — alleen dan bevestigd signaal
-// 3. Volume spike: huidig volume > 1.5× 20-bar gemiddelde
-// 4. Tight range (consoliderend): laatste 8 bars binnen ≤ 6% (4H) / ≤ 8% (1D)
-// 5. Prijs dicht bij Kijun of cloud rand (pre-breakout zone)
-// 6. TK cross richting klopt (geen tegenstrijdig cross)
-function analyseSignal(coin, tfKey, tfLabel) {
-  const tf       = coin[tfKey];
+// ── Helper: ATR berekening ────────────────────────────────────────────────
+function sigATR(candles, period) {
+  const n = candles.length;
+  if (n < period + 1) return null;
+  let sum = 0;
+  for (let i = n - period; i < n; i++) {
+    const h = candles[i].h, l = candles[i].l, pc = candles[i-1]?.c || candles[i].o;
+    sum += Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+  }
+  return sum / period;
+}
+
+// ── Helper: meet accumulatielengte ────────────────────────────────────────
+// Hoeveel opeenvolgende bars zit de prijs in een krappe range (<maxRangePct)?
+function measureAccumulation(candles, maxRangePct) {
+  const n = candles.length;
+  if (n < 3) return 0;
+  const ci = n - 2; // gebruik afgesloten candle
+  let count = 1;
+  let hi = candles[ci].h;
+  let lo = candles[ci].l;
+  for (let i = ci - 1; i >= Math.max(0, ci - 100); i--) {
+    const newHi = Math.max(hi, candles[i].h);
+    const newLo = Math.min(lo, candles[i].l);
+    const rangePct = (newHi - newLo) / newLo * 100;
+    if (rangePct > maxRangePct) break;
+    hi = newHi; lo = newLo;
+    count++;
+  }
+  return count;
+}
+
+// ── Helper: volume spike ──────────────────────────────────────────────────
+function sigVolRatio(candles) {
+  const n = candles.length;
+  if (n < 22) return 0;
+  const ci = n - 2; // afgesloten candle
+  const avg = candles.slice(ci - 20, ci).reduce((s, c) => s + (c.v || 0), 0) / 20;
+  return avg > 0 ? (candles[ci].v || 0) / avg : 0;
+}
+
+// ── Kern: analyseer één coin op één TF ────────────────────────────────────
+function analyseSignalFlagship(coin, tfKey, tfLabel) {
+  const tf      = coin[tfKey];
+  const candles = SIGNAL_CANDLE_CACHE[coin.id]?.[tfKey];
+
   if (!tf || !tf.vals) return null;
+  if (!candles || candles.length < 80) return null;
 
-  const candles  = SIGNAL_CANDLE_CACHE[coin.id]?.[tfKey];
-
-  // ── Data kwaliteitscheck via candle cache ─────────────────────────────
-  // Minimaal 80 bars nodig voor betrouwbare Ichimoku (senkou 52 + disp 26 + buffer)
-  if (candles && candles.length < 80) return null;
-
-  const score    = tf.score ?? 0;
-  const verdict  = tf.verdict;
   const vals     = tf.vals;
   const price    = vals.price;
-
-  if (!price) return null;
-
-  // ── Criterium 1: Ichimoku score sterk genoeg ──────────────────────────
-  // 4H: minder streng (score ≥ 2.0), 1D: strenger (score ≥ 2.5)
-  const minScore = tfKey === 'tf_4h' ? 2.0 : 2.5; // bij top 100: kwaliteit boven kwantiteit
-  if (verdict === 'bullish' && score < minScore) return null;
-  if (verdict === 'bearish' && score > -minScore) return null;
-  if (verdict === 'neutral') return null;
-
-  const isLong   = verdict === 'bullish';
   const cloudTop = vals.cloudTop;
   const cloudBot = vals.cloudBot;
-  const kijun    = vals.kijun;
   const tenkan   = vals.tenkan;
+  const kijun    = vals.kijun;
+  const senkouA  = vals.senkouA;
+  const senkouB  = vals.senkouB;
 
-  // ── Criterium 2: Prijs buiten cloud ──────────────────────────────────
-  if (!isNaN(cloudTop) && !isNaN(cloudBot)) {
-    const inCloud = price >= cloudBot && price <= cloudTop;
-    if (inCloud) return null; // In cloud = geen signal
+  if (!price || isNaN(cloudTop) || isNaN(cloudBot)) return null;
+
+  const ci       = candles.length - 1;
+  const closedCi = ci - 1;
+
+  // ── BASIS CONDITIE 1: Prijs buiten cloud ─────────────────────────────
+  const aboveCloud = price > cloudTop;
+  const belowCloud = price < cloudBot;
+  if (!aboveCloud && !belowCloud) return null; // in cloud = geen signal
+
+  const isLong = aboveCloud;
+
+  // ── BASIS CONDITIE 2: TK cross klopt ─────────────────────────────────
+  if (isNaN(tenkan) || isNaN(kijun)) return null;
+  const tkDiffPct = (tenkan - kijun) / price * 100;
+  if (isLong  && tkDiffPct < -0.3) return null; // TK duidelijk bearish
+  if (!isLong && tkDiffPct >  0.3) return null; // TK duidelijk bullish
+  const tkOk = isLong ? tenkan >= kijun : tenkan <= kijun;
+
+  // ── MINIMALE ACCUMULATIE ──────────────────────────────────────────────
+  const maxRange    = tfKey === 'tf_4h' ? 7 : 9; // % range drempel
+  const minAccum    = tfKey === 'tf_4h' ? 6 : 4;  // minimum bars
+  const accumBars   = measureAccumulation(candles, maxRange);
+  if (accumBars < minAccum) return null;
+
+  // ── BEVESTIGING 1: Chikou vs historische prijs ────────────────────────
+  const disp     = 26;
+  const chikouRef = ci - (disp - 1);
+  let conf1 = false;
+  if (chikouRef >= 0) {
+    const refPrice = candles[chikouRef].c;
+    conf1 = isLong ? price > refPrice : price < refPrice;
   }
 
-  // ── Criterium 3 & 4: Volume + Range (alleen als candles beschikbaar) ──
-  let volRatio   = null;
-  let rangePct   = null;
-  let rangeHigh  = cloudTop || price * 1.05;
-  let rangeLow   = cloudBot || price * 0.95;
-
-  if (candles && candles.length >= 25) {
-    const ci        = candles.length - 1;
-    const closedIdx = ci - 1; // vorige afgesloten candle
-
-    // Volume spike vs 20-bar gemiddelde (vorige afgesloten candle — niet huidig open candle!)
-    const volBars = 20;
-    const avgVol  = candles.slice(closedIdx - volBars, closedIdx).reduce((s,c) => s + (c.v||0), 0) / volBars;
-    const curVol  = candles[closedIdx].v || 0;
-    volRatio      = avgVol > 0 ? curVol / avgVol : 0;
-
-    // Minimaal vereist volume:
-    // 4H: 1.5×, 1D: 1.4×
-    // 1.2x realistisch in consoliderende markt (was 1.5x - te streng)
-    const minVol = tfKey === 'tf_4h' ? 1.2 : 1.1;
-    if (volRatio < minVol) return null;
-
-    // Range van laatste 8 bars
-    const rangeBars = 8;
-    const recent    = candles.slice(closedIdx - rangeBars + 1, closedIdx + 1);
-    rangeHigh = Math.max(...recent.map(c => c.h));
-    rangeLow  = Math.min(...recent.map(c => c.l));
-    rangePct  = (rangeHigh - rangeLow) / rangeLow * 100;
-
-    // Max range: 4H ≤ 6%, 1D ≤ 8%
-    const maxRange = tfKey === 'tf_4h' ? 6 : 8;
-    if (rangePct > maxRange) return null;
-
-    // ── Criterium 5: Prijs in pre-breakout zone ───────────────────────
-    // Long: prijs moet in bovenste 40% van range zijn (klaar voor uitbraak)
-    // Short: prijs moet in onderste 40% van range zijn
-    const rangePos = (price - rangeLow) / (rangeHigh - rangeLow);
-    if (isLong  && rangePos < 0.30) return null;
-    if (!isLong && rangePos > 0.70) return null;
-  } else {
-    // Geen candles — gebruik strengere Ichimoku score drempel als fallback
-    if (Math.abs(score) < 3.5) return null;
+  // ── BEVESTIGING 2: Toekomstige cloud kleur klopt ─────────────────────
+  // Senkou A en B zijn al berekend in tf.vals
+  // Groene toekomstige cloud = senkouA > senkouB
+  const { tenkan: tLen, kijun: kLen, senkou: sLen } = P();
+  // Lees toekomstige cloud uit de candle data
+  let conf2 = false;
+  if (!isNaN(senkouA) && !isNaN(senkouB)) {
+    conf2 = isLong ? senkouA > senkouB : senkouA < senkouB;
   }
 
-  // ── Criterium 6: TK positie — geen harde blocker maar verhoogt kwaliteit ─
-  // Als TK cross tegenstrijdig is: laat het signaal door maar verlaag de score
-  // Alleen blokkeren als TK ver aan de verkeerde kant staat (>0.5% verschil)
-  if (!isNaN(tenkan) && !isNaN(kijun) && price > 0) {
-    const tkDiffPct = (tenkan - kijun) / price * 100;
-    if (isLong  && tkDiffPct < -0.5) return null; // TK duidelijk bearish
-    if (!isLong && tkDiffPct >  0.5) return null; // TK duidelijk bullish
+  // ── BEVESTIGING 3: Chikou buiten cloud van 26 bars geleden ───────────
+  // Dit onderscheidt EARLY (nog in cloud) van CONFIRMED (buiten cloud)
+  let conf3     = false;
+  let isEarly   = true; // default: EARLY
+  if (chikouRef >= 0) {
+    // Cloud op dat moment = spanA[chikouRef] en spanB[chikouRef]
+    // We benaderen via de tf.vals die al de cloud bevat
+    // Chikou = huidige prijs, geplot 26 bars terug
+    // Cloud 26 bars geleden = we lezen dit uit de raw Ichimoku data
+    // Eenvoudige benadering: als de huidige cloud duidelijk onder prijs
+    // én chikou ver boven historische prijs → confirmed
+    const chikouClearance = isLong
+      ? (price - cloudTop) / cloudTop * 100
+      : (cloudBot - price) / cloudBot * 100;
+    // Als Chikou ver buiten de cloud (>2% clearance) = CONFIRMED
+    if (chikouClearance > 2) {
+      conf3   = true;
+      isEarly = false;
+    } else {
+      isEarly = true; // Chikou nog dichtbij of in cloud gebied
+    }
   }
 
-  // ── Prijs targets berekenen ──────────────────────────────────────────
-  // Stop loss:
-  //   Long:  net onder Kijun of cloud top (laatste steun)
-  //   Short: net boven Kijun of cloud bot (laatste weerstand)
-  let stopLoss, entry;
+  // ── BEVESTIGINGEN TELLEN ──────────────────────────────────────────────
+  const confCount = [conf1, conf2, conf3].filter(Boolean).length;
+  if (confCount === 0) return null; // geen enkel bevestiging = geen signal
+
+  // ── CONVICTION BEPALEN ────────────────────────────────────────────────
+  let convictionScore = confCount; // start: 1, 2 of 3
+  let convictionLabel = convictionScore === 1 ? 'WEAK' : convictionScore === 2 ? 'MEDIUM' : 'STRONG';
+
+  // CONFIRMED moet minimaal MEDIUM zijn
+  if (!isEarly && convictionLabel === 'WEAK') {
+    convictionLabel = 'MEDIUM';
+    convictionScore = 2;
+  }
+
+  // ── CONVICTION BONUSSEN ───────────────────────────────────────────────
+  const bonuses = [];
+
+  // Bonus 1: Cloud dikte
+  const cloudThickPct = Math.abs(cloudTop - cloudBot) / cloudBot * 100;
+  if (cloudThickPct > 5) { convictionScore += 1; bonuses.push('Dikke cloud (' + cloudThickPct.toFixed(1) + '%)'); }
+
+  // Bonus 2: Accumulatielengte
+  if (accumBars >= 20) { convictionScore += 1; bonuses.push('Lange accumulatie (' + accumBars + ' bars)'); }
+
+  // Bonus 3: Volume spike
+  const volRatio = sigVolRatio(candles);
+  if (volRatio >= 2.0) { convictionScore += 1; bonuses.push('Volume spike (' + volRatio.toFixed(1) + '×)'); }
+
+  // Bonus 4: Confluence 4H + 1D (wordt later toegevoegd in runFlagshipScan)
+  // Wordt buiten deze functie berekend
+
+  // Final conviction label
+  if      (convictionScore >= 5) convictionLabel = 'STRONG';
+  else if (convictionScore >= 3) convictionLabel = 'MEDIUM';
+  else                           convictionLabel = 'WEAK';
+
+  // ── PRIJS TARGETS ─────────────────────────────────────────────────────
+  const atr = sigATR(candles, 14) || price * 0.02;
+  let stopLoss, target1, target2, target3;
 
   if (isLong) {
-    entry    = price;
-    stopLoss = !isNaN(kijun) && kijun < price
-      ? kijun * 0.992         // 0.8% onder Kijun
-      : !isNaN(cloudTop) ? cloudTop * 0.992
-      : rangeLow * 0.995;
+    stopLoss = kijun < price ? kijun * 0.992 : cloudTop * 0.992;
+    const risk = price - stopLoss;
+    target1 = price + risk * 1.5;
+    target2 = price + risk * 2.5;
+    target3 = price + risk * 4.0;
   } else {
-    entry    = price;
-    stopLoss = !isNaN(kijun) && kijun > price
-      ? kijun * 1.008
-      : !isNaN(cloudBot) ? cloudBot * 1.008
-      : rangeHigh * 1.005;
+    stopLoss = kijun > price ? kijun * 1.008 : cloudBot * 1.008;
+    const risk = stopLoss - price;
+    target1 = price - risk * 1.5;
+    target2 = price - risk * 2.5;
+    target3 = price - risk * 4.0;
   }
 
-  const risk = Math.abs(entry - stopLoss);
+  const riskPct = Math.abs(price - stopLoss) / price * 100;
 
-  // Targets op 2R, 3R en 4R
-  const target1R = isLong ? entry + risk     : entry - risk;
-  const target2R = isLong ? entry + risk * 2 : entry - risk * 2;
-  const target3R = isLong ? entry + risk * 3 : entry - risk * 3;
-  const target4R = isLong ? entry + risk * 4 : entry - risk * 4;
+  // ── RANGE INFO ────────────────────────────────────────────────────────
+  const recent   = candles.slice(closedCi - accumBars + 1, closedCi + 1);
+  const rangeHi  = Math.max(...recent.map(c => c.h));
+  const rangeLo  = Math.min(...recent.map(c => c.l));
+  const rangePct = (rangeHi - rangeLo) / rangeLo * 100;
 
-  // Risk/reward ratio check — minimaal 2R moet zinvol zijn
-  const rrRatio = risk > 0 ? (Math.abs(target2R - entry) / risk).toFixed(1) : 0;
-
-  // Invalidation = stop loss niveau
-  const invalidation = stopLoss;
+  // Vervaltijd
+  const expiryBars = tfKey === 'tf_4h' ? 10 : 7;
+  const expiryMs   = tfKey === 'tf_4h'
+    ? expiryBars * 4 * 60 * 60 * 1000
+    : expiryBars * 24 * 60 * 60 * 1000;
 
   return {
-    id: coin.id, symbol: coin.symbol.toUpperCase(), name: coin.name,
-    image: coin.image, exchange: coin.exchange,
-    price, entry, direction: isLong ? 'long' : 'short',
-    tfKey, tfLabel, score, ichVerdict: verdict,
-    volRatio: volRatio != null ? +volRatio.toFixed(2) : null,
-    rangePct: rangePct != null ? +rangePct.toFixed(1) : null,
-    rangeHigh: +rangeHigh.toFixed(8),
-    rangeLow:  +rangeLow.toFixed(8),
-    stopLoss:  +stopLoss.toFixed(8),
-    invalidation: +invalidation.toFixed(8),
-    target1R: +target1R.toFixed(8),
-    target2R: +target2R.toFixed(8),
-    target3R: +target3R.toFixed(8),
-    target4R: +target4R.toFixed(8),
-    riskPct:  +(risk / entry * 100).toFixed(2),
+    id:          coin.id,
+    symbol:      coin.symbol.toUpperCase(),
+    name:        coin.name,
+    image:       coin.image,
+    exchange:    coin.exchange,
+
+    tfKey, tfLabel,
+    direction:   isLong ? 'long' : 'short',
+    signalType:  isEarly ? 'EARLY' : 'CONFIRMED',
+    conviction:  convictionLabel,
+    convScore:   convictionScore,
+
+    price,
+    stopLoss:    +stopLoss.toFixed(8),
+    target1:     +target1.toFixed(8),
+    target2:     +target2.toFixed(8),
+    target3:     +target3.toFixed(8),
+    riskPct:     +riskPct.toFixed(2),
+
+    // Bevestigingen
+    conf1, conf2, conf3,
+    confCount,
+    tkOk,
+
+    // Context
+    cloudThickPct: +cloudThickPct.toFixed(1),
+    accumBars,
+    volRatio:    +volRatio.toFixed(2),
+    bonuses,
+    rangePct:    +rangePct.toFixed(1),
+    rangeHi, rangeLo,
+
+    // Confluence (wordt later ingevuld)
+    confluenceBonus: false,
+
+    // Timing
     ts:       Date.now(),
+    expiryMs,
+    expired:  false,
   };
 }
 
-// ── Hoofdfunctie: scan alle coins ────────────────────────────────────────
+// ── Hoofd scan functie ────────────────────────────────────────────────────
 function runSignalScan() {
   const status = document.getElementById('sigStatus');
+  const cards  = document.getElementById('signalCards');
 
-  // Check hoeveel coins candle data hebben in de cache
+  // Check cache
   const cachedCoins = Object.keys(SIGNAL_CANDLE_CACHE).length;
-  const has4H = Object.values(SIGNAL_CANDLE_CACHE).filter(c => c.tf_4h?.length > 0).length;
-  const has1D = Object.values(SIGNAL_CANDLE_CACHE).filter(c => c.tf_1d?.length > 0).length;
-
-  // Data kwaliteit rapport
-  const good4H    = Object.values(DATA_QUALITY).filter(q => q.tf_4h?.ok).length;
-  const good1D    = Object.values(DATA_QUALITY).filter(q => q.tf_1d?.ok).length;
-  const bad4H     = Object.values(DATA_QUALITY).filter(q => q.tf_4h && !q.tf_4h.ok).map((q,i) => Object.keys(DATA_QUALITY)[i]).filter(Boolean);
-  const noData    = DATA.filter(d => !DATA_QUALITY[d.id] || (!DATA_QUALITY[d.id].tf_4h && !DATA_QUALITY[d.id].tf_1d)).map(d => d.symbol.toUpperCase());
-
   if (cachedCoins === 0) {
-    if (status) status.textContent = '⏳ Geen candle data. Ga naar Scanner en wacht tot de scan klaar is (±5 min).';
-    if (document.getElementById('signalCards')) {
-      document.getElementById('signalCards').innerHTML =
-        '<div style="text-align:center;padding:40px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">' +
-        '⏳ Geen data beschikbaar.<br><br>' +
-        'Ga naar <strong>Scanner</strong> en wacht tot de scan klaar is.<br>' +
-        'Daarna klik hier op Scan — volume data is dan beschikbaar.' +
-        '</div>';
-    }
+    if (status) status.textContent = '⏳ Geen data — laat de scanner eerst een volledige scan uitvoeren.';
+    if (cards) cards.innerHTML = '<div style="text-align:center;padding:60px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">⚡ Wacht op scan data...</div>';
     return;
   }
 
-  if (status) status.textContent = `⚡ Signals scannen... (${has4H} coins met 4H data, ${has1D} met 1D data)`;
-  SIGNALS_DATA = [];
-
-  // Alleen 4H en 1D — weekly verwijderd
+  FLAGSHIP_SIGNALS.length = 0;
   const TF_SCAN = [
     { key: 'tf_4h', label: '4H' },
     { key: 'tf_1d', label: '1D' },
   ];
 
+  // Eerste pass: genereer alle signals
+  const rawSignals = [];
   for (const coin of DATA) {
     for (const tf of TF_SCAN) {
-      const signal = analyseSignal(coin, tf.key, tf.label);
-      if (signal) SIGNALS_DATA.push(signal);
+      const sig = analyseSignalFlagship(coin, tf.key, tf.label);
+      if (sig) rawSignals.push(sig);
     }
   }
 
-  // Sorteer: sterkste Ichimoku score eerst
-  SIGNALS_DATA.sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
+  // Tweede pass: confluence check
+  for (const sig of rawSignals) {
+    const other = rawSignals.find(s =>
+      s.id === sig.id &&
+      s.tfKey !== sig.tfKey &&
+      s.direction === sig.direction
+    );
+    if (other) {
+      sig.confluenceBonus = true;
+      // Verhoog conviction
+      sig.convScore += 1;
+      if      (sig.convScore >= 5) sig.conviction = 'STRONG';
+      else if (sig.convScore >= 3) sig.conviction = 'MEDIUM';
+      sig.bonuses.push('4H + 1D confluence ✓');
+    }
+  }
+
+  // Markeer verlopen signals maar bewaar ze
+  const now = Date.now();
+  for (const sig of rawSignals) {
+    if (now - sig.ts > sig.expiryMs) sig.expired = true;
+  }
+
+  // Sorteer: CONFIRMED eerst, dan STRONG → MEDIUM → WEAK, dan verse signals
+  rawSignals.sort((a, b) => {
+    if (a.expired !== b.expired) return a.expired ? 1 : -1;
+    if (a.signalType !== b.signalType) return a.signalType === 'CONFIRMED' ? -1 : 1;
+    const convOrder = { STRONG: 3, MEDIUM: 2, WEAK: 1 };
+    if (convOrder[b.conviction] !== convOrder[a.conviction])
+      return convOrder[b.conviction] - convOrder[a.conviction];
+    return b.ts - a.ts;
+  });
+
+  FLAGSHIP_SIGNALS.push(...rawSignals);
 
   // Badge
   const badge = document.getElementById('signalBadge');
   if (badge) {
-    badge.textContent  = SIGNALS_DATA.length;
-    badge.style.display = SIGNALS_DATA.length > 0 ? 'inline' : 'none';
+    const active = rawSignals.filter(s => !s.expired).length;
+    badge.textContent  = active;
+    badge.style.display = active > 0 ? 'inline' : 'none';
   }
 
   if (status) {
-    const longs  = SIGNALS_DATA.filter(s => s.direction === 'long').length;
-    const shorts = SIGNALS_DATA.filter(s => s.direction === 'short').length;
-    const good4H = Object.values(DATA_QUALITY).filter(q => q.tf_4h?.ok).length;
-    const good1D = Object.values(DATA_QUALITY).filter(q => q.tf_1d?.ok).length;
-    const qualWarn = (good4H < DATA.length || good1D < DATA.length)
-      ? ` · ⚠️ ${DATA.length - Math.min(good4H, good1D)} coins onvoldoende data`
-      : ' · ✅ alle data volledig';
-    status.textContent = `⚡ ${SIGNALS_DATA.length} signals (${longs} long · ${shorts} short) — ${good4H}/${DATA.length} 4H ok · ${good1D}/${DATA.length} 1D ok${qualWarn}`;
+    const longs     = rawSignals.filter(s => s.direction === 'long'      && !s.expired).length;
+    const shorts    = rawSignals.filter(s => s.direction === 'short'     && !s.expired).length;
+    const confirmed = rawSignals.filter(s => s.signalType === 'CONFIRMED' && !s.expired).length;
+    const early     = rawSignals.filter(s => s.signalType === 'EARLY'    && !s.expired).length;
+    status.textContent = `⚡ ${rawSignals.filter(s=>!s.expired).length} signals — ${longs} long · ${shorts} short · ${confirmed} confirmed · ${early} early`;
   }
 
   renderSignalsTab();
 }
 
-// ── Render signal cards ──────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────
 function renderSignalsTab() {
   const container = document.getElementById('signalCards');
   if (!container) return;
 
-  let signals = SIGNALS_DATA.filter(s => {
-    if (sigFilterDir !== 'all' && s.direction !== sigFilterDir) return false;
-    if (sigFilterTF  !== 'all' && s.tfKey !== 'tf_' + sigFilterTF) return false;
+  let signals = FLAGSHIP_SIGNALS.filter(s => {
+    if (sigFilterTF   !== 'all' && s.tfKey !== 'tf_' + sigFilterTF) return false;
+    if (sigFilterDir  !== 'all' && s.direction  !== sigFilterDir)    return false;
+    if (sigFilterType !== 'all' && s.signalType.toLowerCase() !== sigFilterType) return false;
+    if (sigFilterConv !== 'all' && s.conviction.toLowerCase() !== sigFilterConv) return false;
     return true;
   });
 
   if (signals.length === 0) {
-    container.innerHTML =
-      '<div style="text-align:center;padding:60px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">' +
-      (SIGNALS_DATA.length === 0
-        ? '⚡ Geen signals gevonden. Wacht tot de scan klaar is of pas de filters aan.'
-        : '⚡ Geen signals die aan het filter voldoen.') +
+    container.innerHTML = '<div style="text-align:center;padding:60px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">' +
+      (FLAGSHIP_SIGNALS.length === 0
+        ? '⚡ Geen signals gevonden. Wacht tot de scan klaar is.'
+        : '⚡ Geen signals die voldoen aan de filters.') +
       '</div>';
     return;
   }
 
+  const convColors = {
+    STRONG: { col: '#00ffa3', bg: 'rgba(0,255,163,.1)',  border: 'rgba(0,255,163,.3)'  },
+    MEDIUM: { col: '#ffc400', bg: 'rgba(255,196,0,.08)', border: 'rgba(255,196,0,.25)' },
+    WEAK:   { col: '#7a8aaa', bg: 'rgba(122,138,170,.06)', border: 'rgba(122,138,170,.2)' },
+  };
+  const typeColors = {
+    CONFIRMED: { col: '#00ffa3', bg: 'rgba(0,255,163,.15)' },
+    EARLY:     { col: '#ffc400', bg: 'rgba(255,196,0,.15)' },
+  };
+
   container.innerHTML = signals.map(s => {
     const isLong   = s.direction === 'long';
     const dirCol   = isLong ? '#00ffa3' : 'var(--bear)';
-    const dirLabel = isLong ? 'LONG' : 'SHORT';
-    const volStr   = s.volRatio != null ? s.volRatio.toFixed(1) + '× volume spike' : 'Ichimoku signal';
+    const cc       = convColors[s.conviction] || convColors.WEAK;
+    const tc       = typeColors[s.signalType] || typeColors.EARLY;
     const timeAgo  = Math.round((Date.now() - s.ts) / 60000);
-    const timeStr  = timeAgo < 1 ? 'zojuist' : timeAgo + 'm geleden';
-    const scoreCol = Math.abs(s.score) >= 3.5 ? dirCol : 'var(--tx-2)';
+    const timeStr  = timeAgo < 1 ? 'zojuist' : timeAgo < 60 ? timeAgo + 'm' : Math.round(timeAgo/60) + 'u geleden';
+    const expiredBanner = s.expired
+      ? '<div style="background:rgba(255,100,0,.12);border:1px solid rgba(255,100,0,.3);border-radius:6px;padding:4px 10px;font-family:JetBrains Mono,monospace;font-size:9px;color:#ff8c00;margin-bottom:8px">⏱ Verlopen signal — nog steeds zichtbaar voor referentie</div>'
+      : '';
+    const confluenceBadge = s.confluenceBonus
+      ? '<span style="font-family:JetBrains Mono,monospace;font-size:8px;background:rgba(13,217,196,.15);color:var(--acc);padding:2px 7px;border-radius:4px;border:1px solid rgba(13,217,196,.3)">4H+1D ✓</span>'
+      : '';
 
-    return '<div class="sig-card ' + s.direction + '" data-id="' + s.id + '" onclick="openModal(this.dataset.id)">' +
-      // Header rij
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">' +
+    // Bevestigingen
+    const confRow =
+      '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">' +
+        '<span style="font-family:JetBrains Mono,monospace;font-size:8px;padding:2px 7px;border-radius:4px;' +
+          (s.conf1 ? 'background:rgba(0,255,163,.12);color:#00ffa3;border:1px solid rgba(0,255,163,.3)' : 'background:rgba(255,255,255,.04);color:var(--tx-3);border:1px solid var(--line)') +
+          '">Chikou vs Prijs</span>' +
+        '<span style="font-family:JetBrains Mono,monospace;font-size:8px;padding:2px 7px;border-radius:4px;' +
+          (s.conf2 ? 'background:rgba(0,255,163,.12);color:#00ffa3;border:1px solid rgba(0,255,163,.3)' : 'background:rgba(255,255,255,.04);color:var(--tx-3);border:1px solid var(--line)') +
+          '">Cloud Kleur</span>' +
+        '<span style="font-family:JetBrains Mono,monospace;font-size:8px;padding:2px 7px;border-radius:4px;' +
+          (s.conf3 ? 'background:rgba(0,255,163,.12);color:#00ffa3;border:1px solid rgba(0,255,163,.3)' : 'background:rgba(255,255,255,.04);color:var(--tx-3);border:1px solid var(--line)') +
+          '">Chikou vs Cloud</span>' +
+        confluenceBadge +
+      '</div>';
+
+    // Targets grid
+    const targGrid =
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">' +
+        // Stop
+        '<div style="background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:8px;padding:8px;text-align:center">' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--bear);margin-bottom:3px">STOP</div>' +
+          '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:var(--bear)">$' + fmtP(s.stopLoss) + '</div>' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-top:2px">-' + s.riskPct + '%</div>' +
+        '</div>' +
+        // T1
+        '<div style="background:rgba(0,255,163,.06);border:1px solid rgba(0,255,163,.15);border-radius:8px;padding:8px;text-align:center">' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:3px">T1 · 1.5R</div>' +
+          '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target1) + '</div>' +
+        '</div>' +
+        // T2
+        '<div style="background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.2);border-radius:8px;padding:8px;text-align:center">' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:3px">T2 · 2.5R</div>' +
+          '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target2) + '</div>' +
+        '</div>' +
+        // T3
+        '<div style="background:rgba(0,255,163,.1);border:1px solid rgba(0,255,163,.25);border-radius:8px;padding:8px;text-align:center">' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:3px">T3 · 4R</div>' +
+          '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target3) + '</div>' +
+        '</div>' +
+      '</div>';
+
+    // Context stats
+    const statsRow =
+      '<div style="display:flex;gap:14px;font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);padding-top:8px;border-top:1px solid var(--line);flex-wrap:wrap">' +
+        '<span>Accumulatie: <b style="color:var(--tx-2)">' + s.accumBars + ' bars</b></span>' +
+        '<span>Range: <b style="color:var(--tx-2)">' + s.rangePct + '%</b></span>' +
+        '<span>Volume: <b style="color:' + (s.volRatio >= 2 ? '#00ffa3' : s.volRatio >= 1.2 ? 'var(--tx-2)' : 'var(--tx-3)') + '">' + s.volRatio.toFixed(1) + '×</b></span>' +
+        '<span>Cloud: <b style="color:var(--tx-2)">' + s.cloudThickPct + '%</b></span>' +
+        (s.bonuses.length > 0 ? '<span style="color:var(--acc-2)">+' + s.bonuses.join(' · ') + '</span>' : '') +
+      '</div>';
+
+    return '<div class="sig-card ' + s.direction + '" style="opacity:' + (s.expired ? '0.65' : '1') + '" data-id="' + s.id + '" onclick="openModal(this.dataset.id)">' +
+      expiredBanner +
+      // Header
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">' +
         '<img src="' + (s.image||'') + '" width="22" height="22" style="border-radius:50%;flex-shrink:0">' +
         '<span style="font-family:Syne,sans-serif;font-weight:800;font-size:15px">' + s.symbol + '/USDT</span>' +
         '<span style="font-family:JetBrains Mono,monospace;font-size:10px;background:var(--ink-3);color:var(--tx-3);padding:2px 8px;border-radius:5px">' + s.tfLabel + '</span>' +
-        '<span class="sig-pill ' + s.direction + '">' + dirLabel + '</span>' +
-        '<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:' + scoreCol + ';margin-left:auto">Score: ' + s.score.toFixed(1) + '</span>' +
+        // Type badge: EARLY / CONFIRMED
+        '<span style="font-family:JetBrains Mono,monospace;font-size:9px;font-weight:700;background:' + tc.bg + ';color:' + tc.col + ';padding:3px 9px;border-radius:5px">' + s.signalType + '</span>' +
+        // Conviction badge
+        '<span style="font-family:JetBrains Mono,monospace;font-size:9px;font-weight:700;background:' + cc.bg + ';color:' + cc.col + ';border:1px solid ' + cc.border + ';padding:3px 9px;border-radius:5px">' + s.conviction + '</span>' +
+        // Direction
+        '<span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:800;color:' + dirCol + ';margin-left:auto">' + (isLong ? '▲ LONG' : '▼ SHORT') + '</span>' +
       '</div>' +
-
-      // Prijs + time
-      '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px">' +
+      // Price + time
+      '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">' +
         '<span style="font-family:Syne,sans-serif;font-weight:700;font-size:18px">$' + fmtP(s.price) + '</span>' +
         '<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3)">· ' + timeStr + '</span>' +
       '</div>' +
-
-      // Volume
-      '<div style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--tx-3);font-style:italic;margin-bottom:12px">' + volStr + '</div>' +
-
-      // Grid met alle data
-      '<div class="sig-grid">' +
-        '<div><div class="lbl">Entry</div><div class="val" style="color:' + dirCol + '">$' + fmtP(s.entry) + '</div></div>' +
-        '<div><div class="lbl">Stop Loss</div><div class="val" style="color:var(--bear)">$' + fmtP(s.stopLoss) + ' <span style="font-size:9px;color:var(--tx-3)">(-' + s.riskPct + '%)</span></div></div>' +
-        '<div><div class="lbl">Target 2R</div><div class="val" style="color:' + dirCol + '">$' + fmtP(s.target2R) + '</div></div>' +
-        '<div><div class="lbl">Target 3R</div><div class="val" style="color:' + dirCol + '">$' + fmtP(s.target3R) + '</div></div>' +
-        '<div><div class="lbl">Target 4R</div><div class="val" style="color:' + dirCol + '">$' + fmtP(s.target4R) + '</div></div>' +
-        '<div style="background:var(--ink-3);border-radius:6px;padding:6px 8px"><div class="lbl">Invalidation</div><div class="val" style="color:var(--bear)">$' + fmtP(s.invalidation) + '</div></div>' +
-      '</div>' +
-
-      // Range info (als beschikbaar)
-      (s.rangePct != null ?
-        '<div style="display:flex;gap:16px;margin-top:10px;font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3)">' +
-          '<span>Range: ' + s.rangePct + '% tight</span>' +
-          '<span>High: $' + fmtP(s.rangeHigh) + '</span>' +
-          '<span>Low: $' + fmtP(s.rangeLow) + '</span>' +
-        '</div>' : '') +
-
-      // Footer
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">' +
-        '<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:' + (s.ichVerdict==="bullish"?"var(--bull)":"var(--bear)") + '">Ichimoku ' + s.ichVerdict.toUpperCase() + '</span>' +
-        '<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3)">Klik voor chart →</span>' +
-      '</div>' +
+      confRow +
+      targGrid +
+      statsRow +
     '</div>';
   }).join('');
 }
+
+
 
 // Hook candle opslaan in de scan loop
 // Na fetchCandles wordt dit aangeroepen
