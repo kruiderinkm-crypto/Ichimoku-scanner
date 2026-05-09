@@ -1260,7 +1260,14 @@ const TFS = [
 ];
 
 let DATA = [];
-const DATA_QUALITY = {}; // coinId → { tf_key: {bars, exchange, ok} }, filt = 'all', srt = {k:'rank',d:'asc'}, cd = 300;
+const DATA_QUALITY        = {}; // coinId → { tf_key: {bars, exchange, ok} }
+const SIGNAL_CANDLE_CACHE  = {}; // coinId → { tf_key: candles[] }
+const FLAGSHIP_SIGNALS     = []; // actieve signals
+let fundingData = {}; // funding rate data
+let sigFilterTF = 'all', sigFilterDir = 'all', sigFilterType = 'all', sigFilterConv = 'all';
+let filt = 'all';
+let srt = {k:'rank', d:'asc'};
+let cd = 300;
 
 // ═══════════════════════════════════════════════════════════
 // PARAMS
@@ -5073,7 +5080,7 @@ function initBubbleEvents() {
   });
 }
 
-let fundingData = {}; // symbol → [{time, rate}]
+// fundingData declared globally // symbol → [{time, rate}]
 
 // Top coins to track funding rates for
 const FUNDING_SYMBOLS_BINANCE = [
@@ -5705,8 +5712,8 @@ function drawBanterFrame(ctx, W, H, getChangeColor, getGlowColor) {
 // ═══════════════════════════════════════════════════════════
 
 let SIGNALS_DATA = [];
-let sigFilterTF  = 'all';
-let sigFilterDir = 'all';
+// sigFilter declared globally
+// sigFilter declared globally
 
 // ═══════════════════════════════════════════════════════════
 // FLAGSHIP SIGNAL SYSTEEM — ICHIMOKU STACK
@@ -5715,13 +5722,12 @@ let sigFilterDir = 'all';
 // ═══════════════════════════════════════════════════════════
 
 // ── State ────────────────────────────────────────────────────────────────
-const SIGNAL_CANDLE_CACHE = {};
-const FLAGSHIP_SIGNALS    = []; // [{...signal data}]
+// (SIGNAL_CANDLE_CACHE and FLAGSHIP_SIGNALS declared globally at top)
 
 sigFilterTF   = 'all';
 sigFilterDir  = 'all';
-let sigFilterType = 'all'; // all / early / confirmed
-let sigFilterConv = 'all'; // all / weak / medium / strong
+// sigFilterType declared globally
+// sigFilterConv declared globally
 
 // ── Candle cache ─────────────────────────────────────────────────────────
 function cacheCandles(coinId, tfKey, candles) {
