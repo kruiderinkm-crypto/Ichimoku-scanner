@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>雲 Ichimoku Terminal</title>
+<title>VANTAGE</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -90,7 +90,7 @@ body::after {
 .app { display:flex; min-height:100vh; position:relative; z-index:1; }
 .sidebar { width:190px; flex-shrink:0; background:rgba(15,15,15,.97); border-right:1px solid var(--line-2); display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; z-index:200; }
 .sidebar-brand { display:flex; align-items:center; gap:10px; padding:18px 14px 14px; border-bottom:1px solid var(--line); }
-.sidebar-brand .logo { width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--acc),var(--acc-2));display:grid;place-items:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0; }
+.sidebar-brand .logo { display:none; }
 .sbtext h1 { font-family:Syne,sans-serif;font-size:13px;font-weight:800;background:linear-gradient(120deg,var(--tx-1) 60%,var(--acc-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
 .sbtext p  { font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);letter-spacing:2px;text-transform:uppercase;margin-top:1px; }
 .sidebar-nav { display:flex;flex-direction:column;padding:8px 6px;gap:1px;flex:1; }
@@ -657,8 +657,12 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
 <div class="app">
   <nav class="sidebar">
     <div class="sidebar-brand">
-      <div class="logo">雲</div>
-      <div class="sbtext"><h1>Ichimoku</h1><p>TERMINAL</p></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:2px 0">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <polyline points="6,10 16,26 26,10" stroke="#0dd9c4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span style="font-family:'Courier New',monospace;font-size:20px;font-weight:700;letter-spacing:3px;color:#0dd9c4">VANTAGE</span>
+      </div>
     </div>
     <div class="sidebar-nav">
       <button class="tab-btn active" onclick="switchTab('scanner',this)"><span class="tab-icon">📊</span>Scanner</button>
@@ -689,7 +693,9 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
 
   <header class="hdr">
     <div class="brand">
-      <div class="logo">雲</div>
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        <polyline points="6,10 16,26 26,10" stroke="#0dd9c4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       <div class="brand-text">
         <h1>Ichimoku Scanner</h1>
         <p>CoinGecko Top 100 · Binance OHLCV · 7 Timeframes</p>
