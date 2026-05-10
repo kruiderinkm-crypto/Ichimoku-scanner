@@ -628,6 +628,29 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
 .sig-grid .lbl { color:var(--tx-3); font-size:9px; text-transform:uppercase; letter-spacing:1px; }
 .sig-grid .val { color:var(--tx-1); font-weight:600; margin-top:1px; }
 
+
+/* ── Pulserende tab knoppen ── */
+@keyframes pulse-tab {
+  0%   { box-shadow: 0 0 0 0 rgba(0,255,163,.5); background: rgba(0,255,163,.12); }
+  50%  { box-shadow: 0 0 0 8px rgba(0,255,163,0); background: rgba(0,255,163,.18); }
+  100% { box-shadow: 0 0 0 0 rgba(0,255,163,.5); background: rgba(0,255,163,.12); }
+}
+@keyframes pulse-badge {
+  0%   { box-shadow: 0 0 0 0 rgba(0,255,163,.6); }
+  70%  { box-shadow: 0 0 0 4px rgba(0,255,163,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,255,163,0); }
+}
+.tab-btn-pulse {
+  animation: pulse-tab 2s ease-in-out infinite !important;
+  border: 1px solid rgba(0,255,163,.35) !important;
+  color: #00ffa3 !important;
+}
+.tab-btn-pulse .tab-icon {
+  filter: drop-shadow(0 0 4px rgba(0,255,163,.6));
+}
+.badge-pulse-green {
+  animation: pulse-badge 2s ease-out infinite;
+}
 </style>
 </head>
 <body>
@@ -639,11 +662,13 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
     </div>
     <div class="sidebar-nav">
       <button class="tab-btn active" onclick="switchTab('scanner',this)"><span class="tab-icon">📊</span>Scanner</button>
-      <button class="tab-btn" onclick="switchTab('signals',this)"><span class="tab-icon">⚡</span>Signals<span id="signalBadge" style="display:none;background:#00ffa3;color:#000;border-radius:10px;padding:1px 5px;font-size:8px;margin-left:auto;font-weight:700">0</span></button>
+      <button class="tab-btn" onclick="switchTab('signals',this)"><span class="tab-icon">⚡</span>Signals<span id="signalBadge" class="badge-pulse-green" style="display:none;background:#00ffa3;color:#000;border-radius:10px;padding:1px 5px;font-size:8px;margin-left:auto;font-weight:700">0</span></button>
+      <button class="tab-btn" onclick="switchTab('reversal',this)"><span class="tab-icon">⚠️</span>Reversal<span id="reversalBadge" class="badge-pulse-green" style="display:none;background:#00ffa3;color:#000;border-radius:10px;padding:1px 5px;font-size:8px;margin-left:auto;font-weight:700">0</span></button>
+
       <button class="tab-btn" onclick="switchTab('bubbles',this)"><span class="tab-icon">🫧</span>Bubbles</button>
       <button class="tab-btn" onclick="switchTab('funding',this)"><span class="tab-icon">💸</span>Funding Rate</button>
       <button class="tab-btn" onclick="switchTab('portfolio',this)"><span class="tab-icon">💼</span>Portfolio</button>
-      <button class="tab-btn" onclick="switchTab('alerts',this)"><span class="tab-icon">🔔</span>Alerts<span id="alertCountBadge" style="display:none;background:var(--bear);color:#fff;border-radius:10px;padding:1px 5px;font-size:8px;margin-left:auto">0</span></button>
+
     </div>
     <div class="sidebar-foot">
       <div style="display:flex;align-items:center;gap:6px">
@@ -656,7 +681,7 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
       <button class="btn" onclick="localStorage.removeItem('cg_top100_cache');doRefresh()" title="Cache legen en opnieuw laden" style="font-size:9px;padding:4px 6px">🔄</button>
       </div>
       <select id="selIv" onchange="cd=+this.value||300;doRefresh()" style="background:var(--ink-3);border:1px solid var(--line);color:var(--tx-2);padding:4px 6px;border-radius:5px;font-family:JetBrains Mono,monospace;font-size:9px;outline:none;width:100%">
-        <option value="300">Auto 5 min</option><option value="600">Auto 10 min</option><option value="1800">Auto 30 min</option><option value="0">Handmatig</option>
+        <option value="300">Auto 5 min</option><option value="600" selected>Auto 10 min</option><option value="1800">Auto 30 min</option><option value="0">Handmatig</option>
       </select>
     </div>
   </nav>
@@ -683,7 +708,7 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('scanner',this)">📊 Scanner</button>
     <button class="tab-btn" onclick="switchTab('portfolio',this)">💼 Portfolio</button>
-    <button class="tab-btn" onclick="switchTab('alerts',this)">🔔 Alerts <span id="alertCountBadge" style="display:none;background:var(--bear);color:#fff;border-radius:10px;padding:1px 6px;font-size:9px;margin-left:4px">0</span></button>
+
   </div>
 
   <!-- ═══ TAB: SCANNER ═══ -->
@@ -721,7 +746,7 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
     <div class="cg"><label>Auto-refresh</label>
       <select id="selIv_hidden">
         <option value="300">5 min</option>
-        <option value="600">10 min</option>
+        <option value="600" selected>10 min</option>
         <option value="1800">30 min</option>
         <option value="0">Uit</option>
       </select>
@@ -887,6 +912,45 @@ td { padding: 10px 10px; font-size: 12.5px; white-space: nowrap; vertical-align:
     </div>
 
   </div><!-- /tab-signals -->
+
+  <!-- ═══ TAB: REVERSAL ═══ -->
+  <div class="tab-pane" id="tab-reversal">
+    <div style="margin-bottom:18px">
+      <h2 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px">⚠️ REVERSAL</h2>
+      <p style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--tx-3);line-height:1.7">
+        Structurele niveaus + RSI divergentie · 1D en 1W · Awareness only<br>
+        <span style="color:#ff9500">Geen entry, stop of target — jouw beslissing.</span>
+      </p>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:3px;display:flex;gap:2px" id="revFTF">
+        <button class="sig-ft active" onclick="setRevFilter('tf','all',this)">ALL</button>
+        <button class="sig-ft" onclick="setRevFilter('tf','1d',this)">1D</button>
+        <button class="sig-ft" onclick="setRevFilter('tf','1w',this)">1W</button>
+      </div>
+      <div style="background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:3px;display:flex;gap:2px" id="revFDir">
+        <button class="sig-ft active" onclick="setRevFilter('dir','all',this)">ALL</button>
+        <button class="sig-ft" onclick="setRevFilter('dir','bullish',this)" style="color:#00ffa3">BULLISH</button>
+        <button class="sig-ft" onclick="setRevFilter('dir','bearish',this)" style="color:var(--bear)">BEARISH</button>
+      </div>
+      <div style="background:var(--ink-3);border:1px solid var(--line);border-radius:8px;padding:3px;display:flex;gap:2px" id="revFConv">
+        <button class="sig-ft active" onclick="setRevFilter('conv','all',this)">ALL</button>
+        <button class="sig-ft" onclick="setRevFilter('conv','weak',this)" style="color:#7a8aaa">WEAK</button>
+        <button class="sig-ft" onclick="setRevFilter('conv','medium',this)" style="color:#ffc400">MEDIUM</button>
+        <button class="sig-ft" onclick="setRevFilter('conv','strong',this)" style="color:#ff9500">STRONG</button>
+      </div>
+      <button class="btn" onclick="runReversalScan()" style="margin-left:auto;font-size:10px;padding:6px 14px">↻ Scan</button>
+    </div>
+
+    <div id="revStatus" style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--tx-3);margin-bottom:12px"></div>
+    <div id="reversalCards" style="display:flex;flex-direction:column;gap:10px">
+      <div style="text-align:center;padding:60px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">
+        ⚠️ Wacht op scan data...
+      </div>
+    </div>
+  </div><!-- /tab-reversal -->
 
   <!-- ═══ TAB: BUBBLES ═══ -->
   <div class="tab-pane" id="tab-bubbles">
@@ -1263,11 +1327,13 @@ let DATA = [];
 const DATA_QUALITY        = {}; // coinId → { tf_key: {bars, exchange, ok} }
 const SIGNAL_CANDLE_CACHE  = {}; // coinId → { tf_key: candles[] }
 const FLAGSHIP_SIGNALS     = []; // actieve signals
+const REVERSAL_SIGNALS      = []; // reversal awareness signals
+// revFilter vars declared in reversal JS block
 let fundingData = {}; // funding rate data
 let sigFilterTF = 'all', sigFilterDir = 'all', sigFilterType = 'all', sigFilterConv = 'all';
 let filt = 'all';
 let srt = {k:'rank', d:'asc'};
-let cd = 300;
+let cd = 600;
 
 // ═══════════════════════════════════════════════════════════
 // PARAMS
@@ -2887,6 +2953,9 @@ function updateSum() {
 let _tvWidget = null;
 
 function loadTVWidget(symbol, interval) {
+  // Map interval to TradingView format
+  const ivMap = {'1H':'60','4H':'240','12H':'720','1D':'D','3D':'3D','1W':'W','2W':'W'};
+  interval = ivMap[interval] || interval;
   const container = document.getElementById('tradingview_widget');
   if (!container) return;
   container.innerHTML = '';
@@ -2935,13 +3004,18 @@ function loadTVWidget(symbol, interval) {
     buildWidget();
   } else {
     container.innerHTML = '<div style="height:450px;display:flex;align-items:center;justify-content:center;color:var(--tx-3);font-size:11px">Chart laden...</div>';
-    const s = document.createElement('script');
-    s.src = 'https://s3.tradingview.com/tv.js';
-    s.onload = buildWidget;
-    s.onerror = function() {
-      container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tx-3)">TradingView niet beschikbaar</div>';
-    };
-    document.head.appendChild(s);
+    if (document.querySelector('script[src*="tv.js"]')) {
+      // Script already loading or loaded - retry
+      setTimeout(buildWidget, 500);
+    } else {
+      const s = document.createElement('script');
+      s.src = 'https://s3.tradingview.com/tv.js';
+      s.onload = buildWidget;
+      s.onerror = function() {
+        container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tx-3)">TradingView niet beschikbaar</div>';
+      };
+      document.head.appendChild(s);
+    }
   }
 }
 
@@ -2960,260 +3034,158 @@ function setTVInterval(symbol, interval, btn) {
 }
 
 function openModal(id) {
-  const c = DATA.find(function(x) { return x.id === id; });
+  const c = DATA.find(d => d.id === id);
   if (!c) return;
 
-  document.getElementById('mTitle').innerHTML =
-    '<img src="' + c.image + '" alt="">' + c.name +
-    ' <span style="color:var(--t3);font-weight:400">' + c.symbol.toUpperCase() + '</span>' +
-    ' <span style="font-size:11px;color:var(--acc2);font-weight:400">via ' + (c.exchange || '?') + '</span>';
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('mTitle').textContent = c.name + ' / USDT';
 
-  // Build TradingView symbol
-  var exchMap = { Binance: 'BINANCE', Bybit: 'BYBIT', KuCoin: 'KUCOIN', Kraken: 'KRAKEN' };
-  var tvExch  = exchMap[c.exchange] || 'BINANCE';
-  var tvPair  = c.bnSymbol || (c.symbol.toUpperCase() + 'USDT');
-  var tvSym   = tvExch + ':' + tvPair;
+  // ── TradingView chart ─────────────────────────────────────────────────
+  const tvPair  = (c.exchange === 'Bybit' ? 'BYBIT:' : c.exchange === 'Kraken' ? 'KRAKEN:' : 'BINANCE:') + c.symbol.toUpperCase() + 'USDT';
+  const tvHtml  =
+    '<div id="tvContainer" style="width:100%;height:420px;border-radius:12px;overflow:hidden;margin-bottom:20px">' +
+      '<div id="tradingview_widget" style="height:100%"></div>' +
+    '</div>';
 
-  // TF buttons
-  var tfButtons = ['1h','4h','1D','3D','1W'].map(function(tf, i) {
-    var isActive = i === 2; // 1D active by default
-    return '<button class="tv-tf-btn" onclick="setTVInterval(\'' + tvSym + '\',\'' + tf + '\',this)" style="' +
-      'background:' + (isActive ? 'var(--acc)' : 'var(--ink-4)') + ';' +
-      'border:1px solid ' + (isActive ? 'var(--acc)' : 'var(--line)') + ';' +
-      'color:' + (isActive ? '#fff' : 'var(--tx-3)') + ';' +
-      'padding:3px 9px;border-radius:4px;font-family:JetBrains Mono,monospace;font-size:9px;cursor:pointer;transition:all .15s">' + tf + '</button>';
-  }).join('');
+  // ── Signal details (alleen als coin een actief signal heeft) ──────────
+  const coinSignals = typeof FLAGSHIP_SIGNALS !== 'undefined'
+    ? FLAGSHIP_SIGNALS.filter(s => s.id === id)
+    : [];
 
-  var tvHtml = '<div style="margin-bottom:16px">' +
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">' +
-    '<span style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1.5px">TradingView · ' + tvSym + ' · Ichimoku 9/26/52</span>' +
-    '<div style="display:flex;gap:4px">' + tfButtons + '</div>' +
-    '</div>' +
-    '<div style="border-radius:10px;overflow:hidden;border:1px solid var(--line)">' +
-    '<div id="tradingview_widget"></div>' +
-    '</div></div>';
+  let signalHtml = '';
+  if (coinSignals.length > 0) {
+    signalHtml = coinSignals.map(s => {
+      const isLong  = s.direction === 'long';
+      const dirCol  = isLong ? '#00ffa3' : 'var(--bear)';
+      const convColors = {
+        STRONG: { col: '#00ffa3', bg: 'rgba(0,255,163,.1)',   border: 'rgba(0,255,163,.3)'  },
+        MEDIUM: { col: '#ffc400', bg: 'rgba(255,196,0,.08)',  border: 'rgba(255,196,0,.25)' },
+        WEAK:   { col: '#7a8aaa', bg: 'rgba(122,138,170,.06)', border: 'rgba(122,138,170,.2)' },
+      };
+      const cc = convColors[s.conviction] || convColors.WEAK;
+      const tc = s.signalType === 'CONFIRMED'
+        ? { col: '#00ffa3', bg: 'rgba(0,255,163,.15)' }
+        : { col: '#ffc400', bg: 'rgba(255,196,0,.15)' };
 
-  // TF cards
-  var cards = TFS.map(function(tf) {
-    var r = c[tf.key]; if (!r) return '';
-    var col = r.verdict === 'bullish' ? 'var(--bull)' : r.verdict === 'bearish' ? 'var(--bear)' : 'var(--neut)';
-    return '<div class="tfc ' + r.verdict + '">' +
-      '<div class="tfl">' + tf.label + '</div>' +
-      '<div class="tfv" style="color:' + col + '">' + r.verdict.toUpperCase() + '</div>' +
-      '<div class="tfscore">Score: ' + (r.score != null ? r.score.toFixed(1) : '?') + '</div>' +
-      '<div class="tfscore">' + (r.n || 0) + ' candles</div></div>';
-  }).join('');
+      // Redenen
+      const reasons = [];
+      reasons.push({ ok: true,    text: 'Prijs ' + (isLong ? 'boven' : 'onder') + ' Ichimoku cloud' });
+      reasons.push({ ok: s.tkOk,  text: 'Tenkan/Kijun cross in juiste richting' });
+      reasons.push({ ok: s.conf1, text: 'Chikou boven historische prijs (26 bars)' });
+      reasons.push({ ok: s.conf2, text: 'Toekomstige cloud kleur bevestigt richting' });
+      reasons.push({ ok: s.conf3, text: 'Chikou heeft cloud verlaten → ' + s.signalType });
+      if (s.confluenceBonus) reasons.push({ ok: true, text: '4H + 1D signalen in dezelfde richting (confluence)' });
+      if (s.accumBars >= 20) reasons.push({ ok: true, text: 'Lange accumulatie: ' + s.accumBars + ' bars' });
+      if (s.volRatio >= 2.0) reasons.push({ ok: true, text: 'Volume spike: ' + s.volRatio.toFixed(1) + '× het gemiddelde' });
+      if (s.cloudThickPct > 5) reasons.push({ ok: true, text: 'Dikke cloud (' + s.cloudThickPct + '%) = sterke support/weerstand' });
 
-  // Signals
-  var sigHtml = '';
-  TFS.forEach(function(tf) {
-    var r = c[tf.key];
-    if (!r || !r.sigs || !r.sigs.length) return;
-    sigHtml += '<div class="ds"><div class="dt">' + tf.label + ' Signalen</div><div class="sl">' +
-      r.sigs.map(function(s) {
-        return '<span class="sg ' + (s.s === '+' ? 'pos' : s.s === '-' ? 'neg' : '') + '">' + s.t + '</span>';
-      }).join('') + '</div></div>';
-  });
+      const reasonsHtml = reasons.map(r =>
+        '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
+          '<span style="font-size:12px;flex-shrink:0">' + (r.ok ? '✅' : '⬜') + '</span>' +
+          '<span style="font-family:JetBrains Mono,monospace;font-size:10px;color:' + (r.ok ? 'var(--tx-1)' : 'var(--tx-3)') + '">' + r.text + '</span>' +
+        '</div>'
+      ).join('');
 
-  // 1D values
-  var valsHtml = '';
-  var day = c.tf_1d;
-  if (day && day.vals && day.vals.tenkan && !isNaN(day.vals.tenkan)) {
-    var v = day.vals;
-    valsHtml = '<div class="ds"><div class="dt">1D Ichimoku Waarden (' + (c.exchange || '?') + ' · ' + tvPair + ')</div>' +
-      '<div class="dr"><span class="k">Prijs</span><span class="v">$' + fmtP(v.price) + '</span></div>' +
-      '<div class="dr"><span class="k">Tenkan-sen</span><span class="v" style="color:#2962FF">$' + fmtP(v.tenkan) + '</span></div>' +
-      '<div class="dr"><span class="k">Kijun-sen</span><span class="v" style="color:#B71C1C">$' + fmtP(v.kijun) + '</span></div>' +
-      '<div class="dr"><span class="k">Senkou A</span><span class="v">$' + fmtP(v.senkouA) + '</span></div>' +
-      '<div class="dr"><span class="k">Senkou B</span><span class="v">$' + fmtP(v.senkouB) + '</span></div>' +
-      '<div class="dr"><span class="k">Cloud Top</span><span class="v" style="color:var(--bull)">$' + fmtP(v.cloudTop) + '</span></div>' +
-      '<div class="dr"><span class="k">Cloud Bottom</span><span class="v" style="color:var(--bear)">$' + fmtP(v.cloudBot) + '</span></div>' +
-      '</div>';
+      const riskPct = s.riskPct ? s.riskPct.toFixed(2) + '%' : '–';
+
+      return (
+        // Signal header
+        '<div style="background:var(--ink-3);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px">' +
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">' +
+            '<span style="font-family:Syne,sans-serif;font-weight:800;font-size:18px;color:' + dirCol + '">' + (isLong ? '▲ LONG' : '▼ SHORT') + '</span>' +
+            '<span style="font-family:JetBrains Mono,monospace;font-size:10px;background:var(--ink-4);color:var(--tx-3);padding:3px 10px;border-radius:6px">' + s.tfLabel + '</span>' +
+            '<span style="font-family:JetBrains Mono,monospace;font-size:10px;font-weight:700;background:' + tc.bg + ';color:' + tc.col + ';padding:3px 10px;border-radius:6px">' + s.signalType + '</span>' +
+            '<span style="font-family:JetBrains Mono,monospace;font-size:10px;font-weight:700;background:' + cc.bg + ';color:' + cc.col + ';border:1px solid ' + cc.border + ';padding:3px 10px;border-radius:6px">' + s.conviction + '</span>' +
+          '</div>' +
+
+          // Targets grid met entry + percentages
+          (function() {
+            const _mBase = s.entry || s.price;
+            const mt1p = ((Math.abs(s.target1 - _mBase)/_mBase)*100).toFixed(1);
+            const mt2p = ((Math.abs(s.target2 - _mBase)/_mBase)*100).toFixed(1);
+            const mt3p = ((Math.abs(s.target3 - _mBase)/_mBase)*100).toFixed(1);
+            const mIsL = s.direction === 'long';
+            return (
+              '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px">' +
+                '<div style="background:rgba(13,217,196,.08);border:1px solid rgba(13,217,196,.25);border-radius:10px;padding:12px;text-align:center">' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--acc);margin-bottom:5px">ENTRY</div>' +
+                  '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:var(--tx-1)">$' + fmtP(s.entry || s.price) + '</div>' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-top:3px">' + (s.entryLabel||'huidig') + '</div>' +
+                '</div>' +
+                '<div style="background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:10px;padding:12px;text-align:center">' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--bear);margin-bottom:5px">STOP LOSS</div>' +
+                  '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:var(--bear)">$' + fmtP(s.stopLoss) + '</div>' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--bear);margin-top:3px">-' + riskPct + '</div>' +
+                '</div>' +
+                '<div style="background:rgba(0,255,163,.06);border:1px solid rgba(0,255,163,.15);border-radius:10px;padding:12px;text-align:center">' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-bottom:5px">T1 · 1.5R</div>' +
+                  '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target1) + '</div>' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:' + dirCol + ';margin-top:3px">' + (mIsL?'+':'−') + mt1p + '%</div>' +
+                '</div>' +
+                '<div style="background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.2);border-radius:10px;padding:12px;text-align:center">' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-bottom:5px">T2 · 2.5R</div>' +
+                  '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target2) + '</div>' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:' + dirCol + ';margin-top:3px">' + (mIsL?'+':'−') + mt2p + '%</div>' +
+                '</div>' +
+                '<div style="background:rgba(0,255,163,.1);border:1px solid rgba(0,255,163,.25);border-radius:10px;padding:12px;text-align:center">' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-bottom:5px">T3 · 4R</div>' +
+                  '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target3) + '</div>' +
+                  '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:' + dirCol + ';margin-top:3px">' + (mIsL?'+':'−') + mt3p + '%</div>' +
+                '</div>' +
+              '</div>'
+            );
+          })() +
+
+          // Redenen
+          '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Waarom dit signal</div>' +
+          reasonsHtml +
+        '</div>'
+      );
+    }).join('');
   }
 
-  // Momentum
-  var k    = krachtScore(c);
-  var kCol = k >= 65 ? 'var(--bull)' : k <= 35 ? 'var(--bear)' : 'var(--neut)';
-  var kLbl = k >= 65 ? 'Sterk bullish momentum' : k <= 35 ? 'Sterk bearish momentum' : 'Matig / gemengd signaal';
-  var momentumHtml =
-    '<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;background:var(--ink-3);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:16px">' +
-    '<div>' + momentumGauge(c.avgScore, c.verdict) + '</div>' +
-    '<div>' +
-    '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Momentum Kracht</div>' +
-    '<div style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;color:' + kCol + '">' + k + '<span style="font-size:14px">/100</span></div>' +
-    '<div style="font-family:JetBrains Mono,monospace;font-size:10px;color:' + kCol + ';margin-top:2px">' + kLbl + '</div>' +
-    '<div style="margin-top:10px">' + consensusBar(c) + '</div>' +
-    '<div style="margin-top:8px;display:flex;align-items:center;gap:6px">' +
-    '<span style="font-size:10px;color:var(--tx-3)">Trend:</span>' +
-    trendArrow(c) +
-    '<span style="font-size:9px;color:var(--tx-3);margin-left:4px">' + (volumeIndicator(c) || 'Normaal volume') + '</span>' +
-    '</div></div></div>';
-
-
-  // Price targets in modal
-  const pt = calcPriceTargets(c);
-  let targetsHtml = '';
-  if (pt) {
-    const isLong = c.verdict === 'bullish';
-    const dirCol = isLong ? 'var(--bull)' : 'var(--bear)';
-    const atrStr = pt.atr ? ' &nbsp;·&nbsp; ATR: $' + fmtP(pt.atr) : '';
-    const swingStr = (pt.swingHigh && pt.swingLow)
-      ? ' &nbsp;·&nbsp; Swing: $' + fmtP(pt.swingLow) + ' – $' + fmtP(pt.swingHigh) : '';
-
-    // Stop loss + entry row
-    const stopRow = pt.stopLoss
-      ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
-          '<div style="background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:8px;padding:10px;text-align:center">' +
-            '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--bear);margin-bottom:4px">✕ STOP LOSS (' + (pt.stopLabel||'ATR') + ')</div>' +
-            '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:var(--bear)">$' + fmtP(pt.stopLoss) + '</div>' +
-            '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-top:2px">-' + ((Math.abs(c.price - pt.stopLoss)/c.price)*100).toFixed(1) + '% van prijs</div>' +
+  // ── Prijs targets (alleen als geen signal — anders redundant) ─────────
+  let priceTargetHtml = '';
+  if (coinSignals.length === 0) {
+    const pt = typeof calcPriceTargets !== 'undefined' ? calcPriceTargets(c) : null;
+    if (pt && pt.targets && pt.targets.length > 0) {
+      priceTargetHtml =
+        '<div style="background:var(--ink-3);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px">' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">📊 Prijs Targets</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">' +
+            '<div style="background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:10px;padding:12px;text-align:center">' +
+              '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--bear);margin-bottom:4px">STOP LOSS (' + (pt.stopLabel||'ATR') + ')</div>' +
+              '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:var(--bear)">$' + fmtP(pt.stopLoss) + '</div>' +
+            '</div>' +
+            '<div style="background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center">' +
+              '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-bottom:4px">ENTRY (' + (pt.buyLabel||'Markt') + ')</div>' +
+              '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:var(--tx-1)">$' + fmtP(pt.buyTarget || c.price) + '</div>' +
+            '</div>' +
           '</div>' +
-          '<div style="background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center">' +
-            '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">◎ ENTRY ZONE (' + (pt.buyLabel||'Markt') + ')</div>' +
-            '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:var(--tx-1)">$' + fmtP(pt.buyTarget || c.price) + '</div>' +
-            '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-top:2px">Huidige: $' + fmtP(c.price) + '</div>' +
-          '</div>' +
-        '</div>' : '';
-
-    // Targets rij
-    const targetsRow = pt.targets && pt.targets.length > 0
-      ? '<div style="margin-bottom:8px">' +
-          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Targets (Fibonacci + Swing + Ichimoku)</div>' +
-          '<div style="display:grid;grid-template-columns:repeat(' + Math.min(pt.targets.length, 4) + ',1fr);gap:6px">' +
-          pt.targets.slice(0, 4).map((t, i) => {
-            const pct = ((Math.abs(t.price - c.price) / c.price) * 100).toFixed(1);
-            const intensity = Math.min(1, t.rr / 5);
-            const g = Math.round(120 + intensity * 100);
-            const bgCol = isLong ? 'rgba(0,' + g + ',80,.12)' : 'rgba(200,40,40,.12)';
-            const borderCol = isLong ? 'rgba(0,' + g + ',80,.3)' : 'rgba(200,40,40,.3)';
-            return '<div style="background:' + bgCol + ';border:1px solid ' + borderCol + ';border-radius:8px;padding:10px;text-align:center">' +
-              '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">T' + (i+1) + ' · ' + (t.rr > 0 ? t.rr + 'R' : '') + '</div>' +
-              '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:' + dirCol + '">$' + fmtP(t.price) + '</div>' +
-              '<div style="font-family:JetBrains Mono,monospace;font-size:7.5px;color:var(--tx-3);margin-top:3px">' + t.label + '</div>' +
-              '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:' + dirCol + ';margin-top:2px">+' + pct + '%</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(' + Math.min(pt.targets.length,4) + ',1fr);gap:8px">' +
+          pt.targets.slice(0,4).map((t,i) => {
+            const pct = ((Math.abs(t.price - c.price)/c.price)*100).toFixed(1);
+            const col = c.verdict === 'bullish' ? '#00ffa3' : 'var(--bear)';
+            return '<div style="background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center">' +
+              '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">T' + (i+1) + ' · ' + t.rr + 'R</div>' +
+              '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:' + col + '">$' + fmtP(t.price) + '</div>' +
+              '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-top:2px">' + t.label + '</div>' +
+              '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:' + col + ';margin-top:1px">+' + pct + '%</div>' +
             '</div>';
           }).join('') +
           '</div>' +
-        '</div>'
-      : '';
-
-    // Key levels (swing highs/lows)
-    const levelsRow = (pt.swingHigh || pt.swingLow)
-      ? '<div style="padding-top:8px;border-top:1px solid var(--line);font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);display:flex;gap:16px;flex-wrap:wrap">' +
-          (pt.swingHigh ? '<span>📈 Swing High: <span style="color:var(--tx-2)">$' + fmtP(pt.swingHigh) + '</span></span>' : '') +
-          (pt.swingLow  ? '<span>📉 Swing Low: <span style="color:var(--tx-2)">$' + fmtP(pt.swingLow) + '</span></span>' : '') +
-          (pt.atr       ? '<span>ATR(14): <span style="color:var(--tx-2)">$' + fmtP(pt.atr) + '</span></span>' : '') +
-        '</div>' : '';
-
-    targetsHtml =
-      '<div style="background:var(--ink-3);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:16px">' +
-        '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">📊 Prijs Analyse (Fibonacci · Swing · Ichimoku · ATR)</div>' +
-        stopRow +
-        targetsRow +
-        levelsRow +
-      '</div>';
-  }
-
-
-  // ── TRIGGER SECTIE in modal ───────────────────────────────────────────
-  const sig = generateSignal(c);
-  const triggerHtml = '<div style="background:' + sig.bg + ';border:1px solid ' + sig.border + ';border-radius:12px;padding:14px 18px;margin-bottom:16px">' +
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
-      '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:' + sig.col + ';text-transform:uppercase;letter-spacing:1.5px">Trigger Signaal</div>' +
-      '<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3)">Score: ' + sig.effectiveScore + '</span>' +
-    '</div>' +
-    '<div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:' + sig.col + ';margin-bottom:8px">' + sig.label + '</div>' +
-    (sig.desc ? '<div style="font-family:JetBrains Mono,monospace;font-size:10px;color:' + sig.col + ';opacity:.8;margin-bottom:10px">' + sig.desc + '</div>' : '') +
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">' +
-      '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:8px;text-align:center">' +
-        '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:3px">CHIKOU</div>' +
-        '<div style="font-family:JetBrains Mono,monospace;font-size:10px;font-weight:700;color:' + (sig.chikouNote.includes('✅') ? 'var(--bull)' : sig.chikouNote.includes('⏳') ? '#ffc400' : 'var(--tx-3)') + '">' + (sig.chikouNote || '—') + '</div>' +
-      '</div>' +
-      '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:8px;text-align:center">' +
-        '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:3px">VOLUME</div>' +
-        '<div style="font-family:JetBrains Mono,monospace;font-size:10px;font-weight:700;color:var(--tx-2)">' + (sig.volumeNote || 'Normaal') + '</div>' +
-      '</div>' +
-      '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:8px;text-align:center">' +
-        '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:3px">1D + 12H</div>' +
-        '<div style="font-family:JetBrains Mono,monospace;font-size:10px;font-weight:700;color:' + (sig.highTFBullish >= 1 ? 'var(--bull)' : sig.highTFBearish >= 1 ? 'var(--bear)' : 'var(--tx-3)') + '">' +
-          (sig.highTFBullish >= 1.5 ? '🟢🟢 1D+12H bullish' : sig.highTFBullish >= 1 ? '🟢 1D bullish' : sig.highTFBullish >= 0.5 ? '🟢 12H bullish' : sig.highTFBearish >= 1.5 ? '🔴🔴 1D+12H bearish' : sig.highTFBearish >= 1 ? '🔴 1D bearish' : sig.highTFBearish >= 0.5 ? '🔴 12H bearish' : '⏳ Neutraal') +
-        '</div>' +
-      '</div>' +
-    '</div>' +
-  '</div>';
-
-  // ── Signal targets in modal ────────────────────────────────────────────
-  // Zoek of deze coin een actief signal heeft in SIGNALS_DATA
-  let signalTargetsHtml = '';
-  if (typeof SIGNALS_DATA !== 'undefined' && SIGNALS_DATA.length > 0) {
-    const coinSignals = SIGNALS_DATA.filter(s => s.id === c.id);
-    if (coinSignals.length > 0) {
-      signalTargetsHtml = '<div style="margin-bottom:16px">' +
-        '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">⚡ Signal Targets</div>' +
-        coinSignals.map(s => {
-          const isLong = s.direction === 'long';
-          const dirCol = isLong ? '#00ffa3' : 'var(--bear)';
-          const riskPct = s.riskPct ? s.riskPct.toFixed(2) + '%' : '–';
-          return '<div style="background:' + (isLong ? 'rgba(0,255,163,.06)' : 'rgba(255,77,77,.06)') + ';border:1px solid ' + (isLong ? 'rgba(0,255,163,.2)' : 'rgba(255,77,77,.2)') + ';border-radius:12px;padding:14px 18px;margin-bottom:8px">' +
-            // Header
-            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">' +
-              '<span style="font-family:Syne,sans-serif;font-weight:800;font-size:16px;color:' + dirCol + '">' + (isLong ? '▲ LONG' : '▼ SHORT') + '</span>' +
-              '<span style="font-family:JetBrains Mono,monospace;font-size:10px;background:var(--ink-3);color:var(--tx-3);padding:2px 8px;border-radius:5px">' + s.tfLabel + '</span>' +
-              (s.volRatio ? '<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);margin-left:auto">' + s.volRatio.toFixed(1) + '× volume</span>' : '') +
-            '</div>' +
-            // Targets grid
-            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">' +
-              // Entry
-              '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;text-align:center">' +
-                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">ENTRY</div>' +
-                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--tx-1)">$' + fmtP(s.entry) + '</div>' +
-              '</div>' +
-              // Target 2R
-              '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;text-align:center">' +
-                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">TARGET 2R</div>' +
-                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target2R) + '</div>' +
-              '</div>' +
-              // Target 3R
-              '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;text-align:center">' +
-                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">TARGET 3R</div>' +
-                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target3R) + '</div>' +
-              '</div>' +
-              // Target 4R
-              '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px;text-align:center">' +
-                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">TARGET 4R</div>' +
-                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target4R) + '</div>' +
-              '</div>' +
-              // Stop Loss
-              '<div style="background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:8px;padding:10px;text-align:center">' +
-                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--bear);margin-bottom:4px">STOP LOSS</div>' +
-                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--bear)">$' + fmtP(s.stopLoss) + '</div>' +
-                '<div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--tx-3);margin-top:2px">-' + riskPct + '</div>' +
-              '</div>' +
-              // Invalidation
-              '<div style="background:rgba(255,50,50,.04);border-radius:8px;padding:10px;text-align:center">' +
-                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:4px">INVALIDATION</div>' +
-                '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:var(--tx-3)">$' + fmtP(s.invalidation) + '</div>' +
-              '</div>' +
-            '</div>' +
-            // Range info
-            (s.rangePct != null ?
-              '<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);padding-top:8px;border-top:1px solid rgba(255,255,255,.05)">' +
-                'Range: ' + s.rangePct + '% tight &nbsp;·&nbsp; ' +
-                'High: $' + fmtP(s.rangeHigh) + ' &nbsp;·&nbsp; ' +
-                'Low: $' + fmtP(s.rangeLow) +
-              '</div>' : '') +
-          '</div>';
-        }).join('') +
-      '</div>';
+        '</div>';
     }
   }
 
-  document.getElementById('mBody').innerHTML = tvHtml + signalTargetsHtml + triggerHtml + targetsHtml + momentumHtml + '<div class="mg">' + cards + '</div>' + sigHtml + valsHtml;
-  document.getElementById('overlay').classList.add('open');
+  document.getElementById('mBody').innerHTML = tvHtml + signalHtml + priceTargetHtml;
 
-  // Load chart after DOM is ready
-  setTimeout(function() { loadTVWidget(tvSym, '1D'); }, 60);
+  // Load TradingView
+  if (typeof loadTVWidget === 'function') {
+    loadTVWidget(tvPair, '240');
+  }
 }
+
 
 
 // ═══════════════════════════════════════════════════════════
@@ -3260,6 +3232,7 @@ function switchTab(name, el) {
   el.classList.add('active');
   if (name === 'portfolio') enrichAndRefresh?.();
   if (name === 'alerts')    renderAlerts?.();
+  if (name === 'reversal')  { if (REVERSAL_SIGNALS.length === 0 && DATA.length > 0) runReversalScan(); else if (typeof renderReversalTab !== 'undefined') renderReversalTab(); }
   if (name === 'bubbles')   setTimeout(() => typeof renderBubbles!=='undefined' && renderBubbles(), 60);
   if (name === 'signals')   { if (SIGNALS_DATA.length === 0 && DATA.length > 0) runSignalScan(); else renderSignalsTab?.(); }
   if (name === 'funding' && typeof fundingData!=='undefined' && Object.keys(fundingData).length===0) loadFundingRates?.();
@@ -4830,6 +4803,7 @@ scan()
     render();
     enrichAndRefresh();
     if (typeof runSignalScan === "function" && DATA.length > 0) setTimeout(runSignalScan, 500);
+    if (typeof runReversalScan === "function" && DATA.length > 0) setTimeout(runReversalScan, 1000);
     fetchMacroData();
   })
   .catch(e => {
@@ -5849,26 +5823,75 @@ function analyseSignalFlagship(coin, tfKey, tfLabel) {
     conf2 = isLong ? senkouA > senkouB : senkouA < senkouB;
   }
 
-  // ── BEVESTIGING 3: Chikou buiten cloud van 26 bars geleden ───────────
-  // Dit onderscheidt EARLY (nog in cloud) van CONFIRMED (buiten cloud)
-  let conf3     = false;
-  let isEarly   = true; // default: EARLY
-  if (chikouRef >= 0) {
-    // Cloud op dat moment = spanA[chikouRef] en spanB[chikouRef]
-    // We benaderen via de tf.vals die al de cloud bevat
-    // Chikou = huidige prijs, geplot 26 bars terug
-    // Cloud 26 bars geleden = we lezen dit uit de raw Ichimoku data
-    // Eenvoudige benadering: als de huidige cloud duidelijk onder prijs
-    // én chikou ver boven historische prijs → confirmed
-    const chikouClearance = isLong
-      ? (price - cloudTop) / cloudTop * 100
-      : (cloudBot - price) / cloudBot * 100;
-    // Als Chikou ver buiten de cloud (>2% clearance) = CONFIRMED
-    if (chikouClearance > 2) {
+  // ── BEVESTIGING 3: Chikou buiten de ZICHTBARE cloud op Chikou positie ──
+  //
+  // HOE ICHIMOKU CLOUD WERKT OP DE CHART:
+  //   SpanA en SpanB worden 26 bars VOORUIT geplot.
+  //   De cloud die ZICHTBAAR is op chartpositie X
+  //   werd berekend vanuit bar X - 26.
+  //
+  // Chikou staat op bar (ci - 26) = 26 bars terug op de chart.
+  // De cloud die ZICHTBAAR is op die positie
+  //   = SpanA/B berekend vanuit bar (ci - 26) - 26 = ci - 52.
+  //
+  // Correcte berekening:
+  //   refBar = ci - 52
+  //   SpanA_visible_at_chikou = (Tenkan[refBar] + Kijun[refBar]) / 2
+  //   SpanB_visible_at_chikou = Donchian52[refBar]
+  //
+  // CONFIRMED = huidige prijs > cloudTop berekend vanuit refBar
+  // EARLY     = huidige prijs in of onder die cloud
+
+  let conf3   = false;
+  let isEarly = true;
+
+  const _refBar = ci - 52; // bar die de cloud op Chikou-positie bepaalde
+  const _ch_tLen = 9, _ch_kLen = 26, _ch_sLen = 52;
+
+  if (_refBar >= _ch_sLen - 1) {
+    let ch_hi, ch_lo;
+
+    // Tenkan op _refBar
+    ch_hi = -Infinity; ch_lo = Infinity;
+    for (let i = _refBar - _ch_tLen + 1; i <= _refBar; i++) {
+      if (i < 0) continue;
+      if (candles[i].h > ch_hi) ch_hi = candles[i].h;
+      if (candles[i].l < ch_lo) ch_lo = candles[i].l;
+    }
+    const _chiTenkan = (ch_hi + ch_lo) / 2;
+
+    // Kijun op _refBar
+    ch_hi = -Infinity; ch_lo = Infinity;
+    for (let i = _refBar - _ch_kLen + 1; i <= _refBar; i++) {
+      if (i < 0) continue;
+      if (candles[i].h > ch_hi) ch_hi = candles[i].h;
+      if (candles[i].l < ch_lo) ch_lo = candles[i].l;
+    }
+    const _chiKijun = (ch_hi + ch_lo) / 2;
+
+    // SpanB op _refBar (52-period)
+    ch_hi = -Infinity; ch_lo = Infinity;
+    for (let i = _refBar - _ch_sLen + 1; i <= _refBar; i++) {
+      if (i < 0) continue;
+      if (candles[i].h > ch_hi) ch_hi = candles[i].h;
+      if (candles[i].l < ch_lo) ch_lo = candles[i].l;
+    }
+    const _chiSpanB = (ch_hi + ch_lo) / 2;
+    const _chiSpanA = (_chiTenkan + _chiKijun) / 2;
+
+    // Cloud zichtbaar op Chikou positie (= bar ci-26 op de chart)
+    const _chiCloudTop = Math.max(_chiSpanA, _chiSpanB);
+    const _chiCloudBot = Math.min(_chiSpanA, _chiSpanB);
+
+    // Is huidige prijs (= Chikou) boven of onder die cloud?
+    if (isLong && price > _chiCloudTop) {
       conf3   = true;
-      isEarly = false;
+      isEarly = false; // Chikou volledig boven cloud → CONFIRMED
+    } else if (!isLong && price < _chiCloudBot) {
+      conf3   = true;
+      isEarly = false; // Chikou volledig onder cloud → CONFIRMED (short)
     } else {
-      isEarly = true; // Chikou nog dichtbij of in cloud gebied
+      isEarly = true;  // Chikou nog in of aan verkeerde kant van cloud → EARLY
     }
   }
 
@@ -5910,29 +5933,107 @@ function analyseSignalFlagship(coin, tfKey, tfLabel) {
 
   // ── PRIJS TARGETS ─────────────────────────────────────────────────────
   const atr = sigATR(candles, 14) || price * 0.02;
-  let stopLoss, target1, target2, target3;
 
-  if (isLong) {
-    stopLoss = kijun < price ? kijun * 0.992 : cloudTop * 0.992;
-    const risk = price - stopLoss;
-    target1 = price + risk * 1.5;
-    target2 = price + risk * 2.5;
-    target3 = price + risk * 4.0;
-  } else {
-    stopLoss = kijun > price ? kijun * 1.008 : cloudBot * 1.008;
-    const risk = stopLoss - price;
-    target1 = price - risk * 1.5;
-    target2 = price - risk * 2.5;
-    target3 = price - risk * 4.0;
-  }
-
-  const riskPct = Math.abs(price - stopLoss) / price * 100;
-
-  // ── RANGE INFO ────────────────────────────────────────────────────────
-  const recent   = candles.slice(closedCi - accumBars + 1, closedCi + 1);
+  // ── RANGE van de accumulatieperiode ──────────────────────────────────
+  // Dit doen we hier al zodat we rangeLo kunnen gebruiken voor stop
+  const recent   = candles.slice(Math.max(0, closedCi - accumBars + 1), closedCi + 1);
   const rangeHi  = Math.max(...recent.map(c => c.h));
   const rangeLo  = Math.min(...recent.map(c => c.l));
   const rangePct = (rangeHi - rangeLo) / rangeLo * 100;
+
+  let entry, entryLabel, stopLoss, stopLabel;
+
+  if (isLong) {
+    // ── ENTRY ────────────────────────────────────────────────────────────
+    // Voorkeur: 4H Tenkan als pullback niveau (als het dichtbij is)
+    // Anders: Kijun als diepere pullback
+    // Fallback: huidige prijs (momentum entry)
+    const tenkan4h = coin.tf_4h?.vals?.tenkan;
+    const kijun1d  = coin.tf_1d?.vals?.kijun;
+
+    if (tfKey === 'tf_4h' && tenkan && tenkan < price && tenkan > cloudTop * 1.001) {
+      // Tenkan is boven cloud en onder prijs — pullback entry
+      entry      = tenkan;
+      entryLabel = '4H Tenkan (pullback)';
+    } else if (tenkan4h && tenkan4h < price && tenkan4h > price * 0.97) {
+      // 4H Tenkan binnen 3% onder prijs
+      entry      = tenkan4h;
+      entryLabel = '4H Tenkan (pullback)';
+    } else if (kijun && kijun < price && kijun > price * 0.94) {
+      // Kijun binnen 6% onder prijs — diepere pullback
+      entry      = kijun;
+      entryLabel = '1D Kijun (pullback)';
+    } else {
+      // Prijs ver van alle levels — momentum entry op marktprijs
+      entry      = price;
+      entryLabel = 'Marktprijs (momentum)';
+    }
+
+    // ── STOP LOSS ─────────────────────────────────────────────────────
+    // Primair: swing low van accumulatieperiode (0.5% buffer eronder)
+    // Dit is het niveau waaronder de setup ongeldig is
+    const swingStop  = rangeLo * 0.995;
+    const kijunStop  = kijun  ? kijun  * 0.992 : null;
+    const atrStop    = entry  - atr * 1.5;
+    const cloudStop  = cloudTop ? cloudTop * 0.992 : null;
+
+    // Kies de hoogste stop die nog logisch is (< entry)
+    // Maar minimum: niet verder dan 15% onder entry (te groot risico)
+    const maxRisk    = entry * 0.15;
+    const candidates = [swingStop, kijunStop, atrStop, cloudStop]
+      .filter(s => s && s < entry && s > entry - maxRisk)
+      .sort((a, b) => b - a); // hoogste eerst = kleinste risico
+
+    if (candidates.length > 0) {
+      stopLoss  = candidates[0];
+      stopLabel = stopLoss === swingStop  ? 'Swing Low accumulatie'
+                : stopLoss === kijunStop  ? 'Onder Kijun'
+                : stopLoss === atrStop    ? '1.5× ATR'
+                : 'Onder Cloud';
+    } else {
+      // Fallback: ATR stop
+      stopLoss  = entry - atr * 1.5;
+      stopLabel = '1.5× ATR';
+    }
+
+  } else {
+    // ── SHORT ENTRY ───────────────────────────────────────────────────
+    if (tfKey === 'tf_4h' && tenkan && tenkan > price && tenkan < cloudBot * 0.999) {
+      entry      = tenkan;
+      entryLabel = '4H Tenkan (pullback)';
+    } else if (kijun && kijun > price && kijun < price * 1.06) {
+      entry      = kijun;
+      entryLabel = '1D Kijun (pullback)';
+    } else {
+      entry      = price;
+      entryLabel = 'Marktprijs (momentum)';
+    }
+
+    // ── SHORT STOP LOSS ───────────────────────────────────────────────
+    const swingStop = rangeHi * 1.005; // swing high van accumulatie + 0.5%
+    const kijunStop = kijun  ? kijun  * 1.008 : null;
+    const atrStop   = entry  + atr * 1.5;
+    const cloudStop = cloudBot ? cloudBot * 1.008 : null;
+
+    const maxRisk   = entry * 0.15;
+    const candidates = [swingStop, kijunStop, atrStop, cloudStop]
+      .filter(s => s && s > entry && s < entry + maxRisk)
+      .sort((a, b) => a - b); // laagste eerst = kleinste risico
+
+    stopLoss  = candidates.length > 0 ? candidates[0] : entry + atr * 1.5;
+    stopLabel = stopLoss === swingStop ? 'Swing High accumulatie'
+              : stopLoss === kijunStop ? 'Boven Kijun'
+              : stopLoss === atrStop   ? '1.5× ATR'
+              : 'Boven Cloud';
+  }
+
+  // ── R-multiples op basis van entry (niet prijs) ────────────────────
+  const risk    = Math.abs(entry - stopLoss);
+  const riskPct = Math.abs(entry - stopLoss) / entry * 100;
+
+  const target1 = isLong ? entry + risk * 1.5 : entry - risk * 1.5;
+  const target2 = isLong ? entry + risk * 2.5 : entry - risk * 2.5;
+  const target3 = isLong ? entry + risk * 4.0 : entry - risk * 4.0;
 
   // Vervaltijd
   const expiryBars = tfKey === 'tf_4h' ? 10 : 7;
@@ -5954,7 +6055,10 @@ function analyseSignalFlagship(coin, tfKey, tfLabel) {
     convScore:   convictionScore,
 
     price,
+    entry:       +entry.toFixed(8),
+    entryLabel,
     stopLoss:    +stopLoss.toFixed(8),
+    stopLabel,
     target1:     +target1.toFixed(8),
     target2:     +target2.toFixed(8),
     target3:     +target3.toFixed(8),
@@ -6048,10 +6152,15 @@ function runSignalScan() {
 
   // Badge
   const badge = document.getElementById('signalBadge');
+  const sigTabBtn = document.querySelector('.tab-btn[onclick*="signals"]');
+  const active = rawSignals.filter(s => !s.expired).length;
   if (badge) {
-    const active = rawSignals.filter(s => !s.expired).length;
-    badge.textContent  = active;
+    badge.textContent   = active;
     badge.style.display = active > 0 ? 'inline' : 'none';
+  }
+  if (sigTabBtn) {
+    if (active > 0) sigTabBtn.classList.add('tab-btn-pulse');
+    else            sigTabBtn.classList.remove('tab-btn-pulse');
   }
 
   if (status) {
@@ -6064,6 +6173,49 @@ function runSignalScan() {
 
   renderSignalsTab();
 }
+
+// ═══════════════════════════════════════════════════════════
+// REVERSAL TAB — PRSM-STIJL AWARENESS SYSTEEM
+// Detecteert: structurele niveaus + RSI divergentie
+// Timeframes: 1D en 1W
+// GEEN entry, stop of target — awareness only
+// ═══════════════════════════════════════════════════════════
+
+let revFilterTF   = 'all';
+let revFilterDir  = 'all';
+let revFilterConv = 'all';
+
+// ── Filter UI ─────────────────────────────────────────────────────────────
+
+// ── RSI berekening ────────────────────────────────────────────────────────
+
+// ── Zoek swing highs en lows ──────────────────────────────────────────────
+function findRevSwings(candles, lookback) {
+  const highs = [], lows = [];
+  const n = candles.length;
+  const minStart = Math.max(lookback, 1);
+  for (let i = minStart; i < n - lookback; i++) {
+    let isHigh = true, isLow = true;
+    for (let j = i - lookback; j <= i + lookback; j++) {
+      if (j === i || j < 0 || j >= n) continue;
+      if (candles[j].h >= candles[i].h) isHigh = false;
+      if (candles[j].l <= candles[i].l) isLow  = false;
+    }
+    if (isHigh) highs.push({ price: candles[i].h, idx: i, rsi: calcRSI(candles, 14, i) });
+    if (isLow)  lows.push({  price: candles[i].l, idx: i, rsi: calcRSI(candles, 14, i) });
+  }
+  return { highs, lows };
+}
+
+// ── Detecteer structurele niveaus (support/resistance touches) ────────────
+
+// ── Hoofd analyse per coin per TF ─────────────────────────────────────────
+
+// ── Hoofd scan ────────────────────────────────────────────────────────────
+
+// ── Render ────────────────────────────────────────────────────────────────
+
+
 
 // ── Render ────────────────────────────────────────────────────────────────
 function renderSignalsTab() {
@@ -6127,28 +6279,42 @@ function renderSignalsTab() {
       '</div>';
 
     // Targets grid
+    const _base  = s.entry || s.price; // gebruik entry als basis voor percentages
+    const t1Pct  = ((Math.abs(s.target1 - _base) / _base) * 100).toFixed(1);
+    const t2Pct  = ((Math.abs(s.target2 - _base) / _base) * 100).toFixed(1);
+    const t3Pct  = ((Math.abs(s.target3 - _base) / _base) * 100).toFixed(1);
+    const isL    = s.direction === 'long';
     const targGrid =
-      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">' +
+      '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px">' +
+        // Entry
+        '<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px;text-align:center">' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--acc);margin-bottom:3px">ENTRY</div>' +
+          '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:var(--tx-1)">$' + fmtP(s.entry || s.price) + '</div>' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (s.entryLabel||'huidig') + '</div>' +
+        '</div>' +
         // Stop
         '<div style="background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:8px;padding:8px;text-align:center">' +
           '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--bear);margin-bottom:3px">STOP</div>' +
           '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:var(--bear)">$' + fmtP(s.stopLoss) + '</div>' +
-          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-top:2px">-' + s.riskPct + '%</div>' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--bear);margin-top:2px">-' + s.riskPct + '%</div>' +
         '</div>' +
         // T1
         '<div style="background:rgba(0,255,163,.06);border:1px solid rgba(0,255,163,.15);border-radius:8px;padding:8px;text-align:center">' +
           '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:3px">T1 · 1.5R</div>' +
           '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target1) + '</div>' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:' + dirCol + ';margin-top:2px">' + (isL?'+':'−') + t1Pct + '%</div>' +
         '</div>' +
         // T2
         '<div style="background:rgba(0,255,163,.08);border:1px solid rgba(0,255,163,.2);border-radius:8px;padding:8px;text-align:center">' +
           '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:3px">T2 · 2.5R</div>' +
           '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target2) + '</div>' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:' + dirCol + ';margin-top:2px">' + (isL?'+':'−') + t2Pct + '%</div>' +
         '</div>' +
         // T3
         '<div style="background:rgba(0,255,163,.1);border:1px solid rgba(0,255,163,.25);border-radius:8px;padding:8px;text-align:center">' +
           '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--tx-3);margin-bottom:3px">T3 · 4R</div>' +
           '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:' + dirCol + '">$' + fmtP(s.target3) + '</div>' +
+          '<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:' + dirCol + ';margin-top:2px">' + (isL?'+':'−') + t3Pct + '%</div>' +
         '</div>' +
       '</div>';
 
@@ -6192,6 +6358,405 @@ function renderSignalsTab() {
 
 // Hook candle opslaan in de scan loop
 // Na fetchCandles wordt dit aangeroepen
+
+
+// ═══════════════════════════════════════════════════════════
+// REVERSAL TAB — PRSM-STIJL AWARENESS SYSTEEM
+// Detecteert: structurele niveaus + RSI divergentie
+// Timeframes: 1D en 1W
+// Geen entry/stop/target — awareness only
+// ═══════════════════════════════════════════════════════════
+
+// (REVERSAL_SIGNALS, revFilterTF, revFilterDir declared globally)
+
+function setRevFilter(type, val, btn) {
+  if (type === 'tf')  revFilterTF  = val;
+  if (type === 'dir') revFilterDir = val;
+  const groupId = type === 'tf' ? 'revFTF' : 'revFDir';
+  document.getElementById(groupId)?.querySelectorAll('.sig-ft')
+    .forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+  renderReversalTab();
+}
+
+// ── RSI(14) berekening ────────────────────────────────────────────────────
+function calcRSI(candles, period) {
+  if (!candles || candles.length < period + 1) return [];
+  const rsi = new Array(candles.length).fill(NaN);
+  let gainSum = 0, lossSum = 0;
+
+  // Eerste periode
+  for (let i = 1; i <= period; i++) {
+    const diff = candles[i].c - candles[i-1].c;
+    if (diff >= 0) gainSum += diff;
+    else           lossSum += Math.abs(diff);
+  }
+  let avgGain = gainSum / period;
+  let avgLoss = lossSum / period;
+  rsi[period] = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+
+  // Wilder's smoothing
+  for (let i = period + 1; i < candles.length; i++) {
+    const diff = candles[i].c - candles[i-1].c;
+    const gain = diff >= 0 ? diff : 0;
+    const loss = diff <  0 ? Math.abs(diff) : 0;
+    avgGain = (avgGain * (period - 1) + gain) / period;
+    avgLoss = (avgLoss * (period - 1) + loss) / period;
+    rsi[i]  = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+  }
+  return rsi;
+}
+
+// ── Structurele niveaus detecteren ───────────────────────────────────────
+// Zoek price levels met minimaal minTouches aanrakingen binnen tolerance%
+function findStructuralLevels(candles, minTouches, tolerancePct) {
+  if (!candles || candles.length < 10) return [];
+  const ci     = candles.length - 1;
+  const lookback = Math.min(ci, 100); // max 100 bars terug
+  const levels = [];
+
+  // Verzamel swing highs en swing lows (3-bar pivot)
+  const pivots = [];
+  for (let i = 2; i <= lookback; i++) {
+    const idx = ci - i;
+    if (idx < 1) break;
+    const prev = candles[idx-1], cur = candles[idx], next = candles[idx+1];
+    // Swing high
+    if (cur.h > prev.h && cur.h > next.h) {
+      pivots.push({ price: cur.h, type: 'high', idx });
+    }
+    // Swing low
+    if (cur.l < prev.l && cur.l < next.l) {
+      pivots.push({ price: cur.l, type: 'low', idx });
+    }
+  }
+
+  // Cluster pivots die binnen tolerancePct van elkaar liggen
+  const used = new Set();
+  for (let i = 0; i < pivots.length; i++) {
+    if (used.has(i)) continue;
+    const cluster = [pivots[i]];
+    used.add(i);
+    for (let j = i + 1; j < pivots.length; j++) {
+      if (used.has(j)) continue;
+      const diff = Math.abs(pivots[j].price - pivots[i].price) / pivots[i].price * 100;
+      if (diff <= tolerancePct) {
+        cluster.push(pivots[j]);
+        used.add(j);
+      }
+    }
+    if (cluster.length >= minTouches) {
+      const avgPrice = cluster.reduce((s, p) => s + p.price, 0) / cluster.length;
+      const isSupport = cluster.filter(p => p.type === 'low').length >=
+                        cluster.filter(p => p.type === 'high').length;
+      levels.push({
+        price:   avgPrice,
+        touches: cluster.length,
+        type:    isSupport ? 'support' : 'resistance',
+        indices: cluster.map(p => p.idx).sort((a,b) => a-b),
+      });
+    }
+  }
+
+  return levels;
+}
+
+// ── RSI divergentie detecteren ────────────────────────────────────────────
+function findRSIDivergence(candles, rsiArr, lookbackBars) {
+  const n  = candles.length;
+  const ci = n - 1;
+  if (ci < lookbackBars + 2) return null;
+
+  // Zoek swing highs en lows in de prijs binnen lookback
+  const swingHighs = [], swingLows = [];
+  for (let i = ci - lookbackBars; i < ci - 1; i++) {
+    if (i < 1) continue;
+    if (candles[i].h > candles[i-1].h && candles[i].h > candles[i+1].h)
+      swingHighs.push({ idx: i, price: candles[i].h, rsi: rsiArr[i] });
+    if (candles[i].l < candles[i-1].l && candles[i].l < candles[i+1].l)
+      swingLows.push({ idx: i, price: candles[i].l, rsi: rsiArr[i] });
+  }
+
+  // Huidig punt
+  const curPrice = candles[ci].c;
+  const curRSI   = rsiArr[ci];
+  if (isNaN(curRSI)) return null;
+
+  let result = null;
+
+  // Bullish divergentie: prijs maakt lower low, RSI maakt higher low
+  if (swingLows.length > 0) {
+    // Vergelijk met meest recente swing low
+    const prevLow = swingLows[swingLows.length - 1];
+    if (!isNaN(prevLow.rsi) &&
+        curPrice < prevLow.price &&          // prijs lager
+        curRSI   > prevLow.rsi + 2) {       // RSI hoger (min 2 punten)
+      result = {
+        type:      'bullish',
+        curPrice,  curRSI:   +curRSI.toFixed(1),
+        prevPrice: prevLow.price,
+        prevRSI:   +prevLow.rsi.toFixed(1),
+        barsAgo:   ci - prevLow.idx,
+        divergence: +(curRSI - prevLow.rsi).toFixed(1),
+      };
+    }
+  }
+
+  // Bearish divergentie: prijs maakt higher high, RSI maakt lower high
+  if (!result && swingHighs.length > 0) {
+    const prevHigh = swingHighs[swingHighs.length - 1];
+    if (!isNaN(prevHigh.rsi) &&
+        curPrice > prevHigh.price &&         // prijs hoger
+        curRSI   < prevHigh.rsi - 2) {      // RSI lager (min 2 punten)
+      result = {
+        type:      'bearish',
+        curPrice,  curRSI:   +curRSI.toFixed(1),
+        prevPrice: prevHigh.price,
+        prevRSI:   +prevHigh.rsi.toFixed(1),
+        barsAgo:   ci - prevHigh.idx,
+        divergence: +(prevHigh.rsi - curRSI).toFixed(1),
+      };
+    }
+  }
+
+  return result;
+}
+
+// ── Analyseer één coin op één TF ─────────────────────────────────────────
+function analyseReversal(coin, tfKey, tfLabel) {
+  const candles = SIGNAL_CANDLE_CACHE[coin.id]?.[tfKey];
+
+  // Minimum bars: 14 (RSI) + 14 (buffer) + 20 (lookback) = 48
+  if (!candles || candles.length < 48) return null;
+
+  // RSI berekenen
+  const rsiArr = calcRSI(candles, 14);
+
+  // RSI divergentie zoeken
+  const lookback = tfKey === 'tf_1w' ? 30 : 50;
+  const divergence = findRSIDivergence(candles, rsiArr, lookback);
+  if (!divergence) return null;
+
+  // Structurele niveaus zoeken
+  const levels = findStructuralLevels(candles, 2, 1.5);
+  if (levels.length === 0) return null;
+
+  // Vind het meest relevante level bij de huidige prijs
+  const price = coin.price || candles[candles.length-1].c;
+  const relevantLevel = levels
+    .filter(l => {
+      const dist = Math.abs(l.price - price) / price * 100;
+      return dist < 8; // binnen 8% van huidige prijs
+    })
+    .sort((a, b) => {
+      // Voorkeur: type klopt bij divergentie + meer touches
+      const aMatch = (divergence.type === 'bullish' && a.type === 'support') ||
+                     (divergence.type === 'bearish' && a.type === 'resistance');
+      const bMatch = (divergence.type === 'bullish' && b.type === 'support') ||
+                     (divergence.type === 'bearish' && b.type === 'resistance');
+      if (aMatch !== bMatch) return aMatch ? -1 : 1;
+      return b.touches - a.touches;
+    })[0];
+
+  if (!relevantLevel) return null;
+
+  // Conviction bepalen
+  let convictionScore = 0;
+
+  // RSI divergentie sterkte
+  if (divergence.divergence >= 10) convictionScore += 3;
+  else if (divergence.divergence >= 5) convictionScore += 2;
+  else convictionScore += 1;
+
+  // Aantal touches
+  if (relevantLevel.touches >= 4) convictionScore += 2;
+  else if (relevantLevel.touches >= 3) convictionScore += 1;
+
+  // 1W weegt zwaarder dan 1D
+  if (tfKey === 'tf_1w') convictionScore += 1;
+
+  let conviction;
+  if      (convictionScore >= 5) conviction = 'STRONG';
+  else if (convictionScore >= 3) conviction = 'MEDIUM';
+  else                           conviction = 'WEAK';
+
+  // Beschrijving
+  const direction  = divergence.type === 'bullish' ? 'Potential Bottom Reversal' : 'Potential Top Reversal';
+  const levelDist  = ((Math.abs(relevantLevel.price - price) / price) * 100).toFixed(1);
+
+  return {
+    id:         coin.id,
+    symbol:     coin.symbol.toUpperCase(),
+    name:       coin.name,
+    image:      coin.image,
+    price,
+    tfKey,
+    tfLabel,
+    direction,
+    divType:    divergence.type, // 'bullish' / 'bearish'
+    conviction,
+    convictionScore,
+
+    // RSI divergentie details
+    curRSI:     divergence.curRSI,
+    prevRSI:    divergence.prevRSI,
+    barsAgo:    divergence.barsAgo,
+    rsidiv:     divergence.divergence,
+
+    // Structureel niveau
+    levelPrice:  +relevantLevel.price.toFixed(8),
+    levelType:   relevantLevel.type,
+    levelTouches: relevantLevel.touches,
+    levelDist,   // % van huidige prijs
+
+    ts: Date.now(),
+  };
+}
+
+// ── Hoofd scan ────────────────────────────────────────────────────────────
+function runReversalScan() {
+  const status = document.getElementById('revStatus');
+  const cards  = document.getElementById('reversalCards');
+
+  const cachedCoins = Object.keys(SIGNAL_CANDLE_CACHE).length;
+  if (cachedCoins === 0) {
+    if (status) status.textContent = '⏳ Geen data — laat de scanner eerst een volledige scan uitvoeren.';
+    if (cards)  cards.innerHTML    = '<div style="text-align:center;padding:60px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">⚠️ Wacht op scan data...</div>';
+    return;
+  }
+
+  REVERSAL_SIGNALS.length = 0;
+
+  const TF_SCAN = [
+    { key: 'tf_1d', label: '1D' },
+    { key: 'tf_1w', label: '1W' },
+  ];
+
+  for (const coin of DATA) {
+    for (const tf of TF_SCAN) {
+      const sig = analyseReversal(coin, tf.key, tf.label);
+      if (sig) REVERSAL_SIGNALS.push(sig);
+    }
+  }
+
+  // Sorteer: STRONG eerst, dan 1W boven 1D, dan recente signals
+  REVERSAL_SIGNALS.sort((a, b) => {
+    const convOrder = { STRONG: 3, MEDIUM: 2, WEAK: 1 };
+    if (convOrder[b.conviction] !== convOrder[a.conviction])
+      return convOrder[b.conviction] - convOrder[a.conviction];
+    if (a.tfKey !== b.tfKey) return a.tfKey === 'tf_1w' ? -1 : 1;
+    return b.rsidiv - a.rsidiv;
+  });
+
+  // Badge
+  const badge     = document.getElementById('reversalBadge');
+  const revTabBtn = document.querySelector('.tab-btn[onclick*="reversal"]');
+  const revCount  = REVERSAL_SIGNALS.length;
+  if (badge) {
+    badge.textContent   = revCount;
+    badge.style.display = revCount > 0 ? 'inline' : 'none';
+  }
+  if (revTabBtn) {
+    if (revCount > 0) revTabBtn.classList.add('tab-btn-pulse');
+    else              revTabBtn.classList.remove('tab-btn-pulse');
+  }
+
+  const bullish = REVERSAL_SIGNALS.filter(s => s.divType === 'bullish').length;
+  const bearish = REVERSAL_SIGNALS.filter(s => s.divType === 'bearish').length;
+  if (status) status.textContent =
+    `⚠️ ${REVERSAL_SIGNALS.length} reversal signalen — ${bullish} bullish · ${bearish} bearish · ${cachedCoins} coins geanalyseerd`;
+
+  renderReversalTab();
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function renderReversalTab() {
+  const container = document.getElementById('reversalCards');
+  if (!container) return;
+
+  let signals = REVERSAL_SIGNALS.filter(s => {
+    if (revFilterTF  !== 'all' && s.tfKey !== 'tf_' + revFilterTF)  return false;
+    if (revFilterDir !== 'all' && s.divType !== revFilterDir) return false;
+    return true;
+  });
+
+  if (signals.length === 0) {
+    container.innerHTML =
+      '<div style="text-align:center;padding:60px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx-3)">' +
+      (REVERSAL_SIGNALS.length === 0
+        ? '⚠️ Geen reversal signalen gevonden. Wacht tot de scan klaar is.'
+        : '⚠️ Geen signalen die voldoen aan de filters.') +
+      '</div>';
+    return;
+  }
+
+  const convColors = {
+    STRONG: { col: '#ff9500', bg: 'rgba(255,149,0,.1)',  border: 'rgba(255,149,0,.3)'  },
+    MEDIUM: { col: '#ffc400', bg: 'rgba(255,196,0,.08)', border: 'rgba(255,196,0,.25)' },
+    WEAK:   { col: '#7a8aaa', bg: 'rgba(122,138,170,.06)', border: 'rgba(122,138,170,.2)' },
+  };
+
+  container.innerHTML = signals.map(s => {
+    const isBull  = s.divType === 'bullish';
+    const dirCol  = isBull ? '#00ffa3' : 'var(--bear)';
+    const cc      = convColors[s.conviction] || convColors.WEAK;
+    const timeAgo = Math.round((Date.now() - s.ts) / 60000);
+    const timeStr = timeAgo < 1 ? 'zojuist' : timeAgo < 60
+      ? timeAgo + 'm geleden'
+      : Math.round(timeAgo/60) + 'u geleden';
+
+    // Convictions icons
+    const convIcon = s.conviction === 'STRONG' ? '⚠️⚠️⚠️'
+                   : s.conviction === 'MEDIUM'  ? '⚠️⚠️'
+                   :                              '⚠️';
+
+    return (
+      '<div class="sig-card" data-id="' + s.id + '" onclick="openModal(this.dataset.id)" style="cursor:pointer;border-left:3px solid ' + cc.col + '">' +
+
+        // Header
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">' +
+          '<img src="' + (s.image||'') + '" width="22" height="22" style="border-radius:50%;flex-shrink:0">' +
+          '<span style="font-family:Syne,sans-serif;font-weight:800;font-size:15px">' + s.symbol + '/USDT</span>' +
+          '<span style="font-family:JetBrains Mono,monospace;font-size:10px;background:var(--ink-3);color:var(--tx-3);padding:2px 8px;border-radius:5px">' + s.tfLabel + '</span>' +
+          '<span style="font-family:JetBrains Mono,monospace;font-size:9px;font-weight:700;background:rgba(255,149,0,.12);color:#ff9500;border:1px solid rgba(255,149,0,.3);padding:2px 8px;border-radius:5px">REVERSAL</span>' +
+          '<span style="font-family:JetBrains Mono,monospace;font-size:9px;background:' + cc.bg + ';color:' + cc.col + ';border:1px solid ' + cc.border + ';padding:2px 8px;border-radius:5px">' + convIcon + ' ' + s.conviction + '</span>' +
+        '</div>' +
+
+        // Direction + prijs
+        '<div style="font-family:Syne,sans-serif;font-style:italic;font-size:14px;font-weight:700;color:' + dirCol + ';margin-bottom:6px">' + s.direction + '</div>' +
+        '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px">' +
+          '<span style="font-family:Syne,sans-serif;font-weight:700;font-size:18px">$' + fmtP(s.price) + '</span>' +
+          '<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3)">· ' + timeStr + '</span>' +
+        '</div>' +
+
+        // Bullets (PRSM-stijl)
+        '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">' +
+          '<div style="display:flex;align-items:flex-start;gap:8px">' +
+            '<span style="color:' + dirCol + ';flex-shrink:0;font-size:12px">•</span>' +
+            '<span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--tx-2)">' +
+              s.levelTouches + ' touches near $' + fmtP(s.levelPrice) +
+              ' <span style="color:var(--tx-3)">(±' + s.levelDist + '% van prijs)</span>' +
+            '</span>' +
+          '</div>' +
+          '<div style="display:flex;align-items:flex-start;gap:8px">' +
+            '<span style="color:' + dirCol + ';flex-shrink:0;font-size:12px">•</span>' +
+            '<span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--tx-2)">' +
+              'RSI divergentie — nu ' + s.curRSI + ', eerder ' + s.prevRSI +
+              ' (' + s.barsAgo + ' bars geleden)' +
+              ' <span style="color:var(--tx-3)">[+' + s.rsidiv + ' punten]</span>' +
+            '</span>' +
+          '</div>' +
+        '</div>' +
+
+        // Disclaimer (PRSM-stijl)
+        '<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--tx-3);font-style:italic;padding-top:10px;border-top:1px solid var(--line)">' +
+          'Awareness only. Geen entry, stop of target — jouw beslissing.' +
+        '</div>' +
+
+      '</div>'
+    );
+  }).join('');
+}
 
 </script>
 </body>
