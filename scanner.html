@@ -1365,11 +1365,12 @@ let cd = 600;
 // PARAMS
 // ═══════════════════════════════════════════════════════════
 function P() {
+  const g = id => { const el = document.getElementById(id); return el ? +el.value : 0; };
   return {
-    tenkan: +document.getElementById('pT').value || 9,
-    kijun:  +document.getElementById('pK').value || 26,
-    senkou: +document.getElementById('pS').value || 52,
-    disp:   +document.getElementById('pD').value || 26,
+    tenkan: g('pT') || 9,
+    kijun:  g('pK') || 26,
+    senkou: g('pS') || 52,
+    disp:   g('pD') || 26,
   };
 }
 
@@ -3109,10 +3110,22 @@ function updateSum() {
   const b  = DATA.filter(x => x.verdict==='bullish').length;
   const br = DATA.filter(x => x.verdict==='bearish').length;
   const n  = DATA.filter(x => x.verdict==='neutral').length;
-  document.getElementById('sT').textContent  = DATA.length;
-  document.getElementById('sB').textContent  = b;
-  document.getElementById('sBr').textContent = br;
-  document.getElementById('sN').textContent  = n;
+function updateSummary() {
+  const bulls   = DATA.filter(x => x.verdict === 'bullish').length;
+  const bears   = DATA.filter(x => x.verdict === 'bearish').length;
+  const neutral = DATA.filter(x => x.verdict === 'neutral').length;
+  const setEl   = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+  setEl('sT',  DATA.length);
+  setEl('sB',  bulls);
+  setEl('sBr', bears);
+  setEl('sN',  neutral);
+  // Nieuwe layout: update scan status
+  const scanEl = document.getElementById('scanStatus');
+  if (scanEl) scanEl.textContent = DATA.length + ' coins geladen';
+}
+  { const _e = document.getElementById('sB'); if(_e) _e.textContent = b; }
+  { const _e = document.getElementById('sBr'); if(_e) _e.textContent = br; }
+  { const _e = document.getElementById('sN'); if(_e) _e.textContent = n; }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -4339,8 +4352,8 @@ function setView(v, el) {
   currentView = v;
   document.querySelectorAll('.vt').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
-  document.getElementById('view-table').style.display   = v === 'table'   ? 'block' : 'none';
-  document.getElementById('view-heatmap').style.display = v === 'heatmap' ? 'block' : 'none';
+  { const _e = document.getElementById('view-table'); if(_e) _e.style.display = v === 'table'   ? 'block' : 'none'; }
+  { const _e = document.getElementById('view-heatmap'); if(_e) _e.style.display = v === 'heatmap' ? 'block' : 'none'; }
   if (v === 'heatmap') renderHeatmap();
 }
 
@@ -4753,10 +4766,10 @@ function calcRiskScore() {
   const wrap = document.getElementById('riskWrap');
   if (!wrap) return;
   wrap.style.display = 'block';
-  document.getElementById('riskBar').style.width = risk + '%';
-  document.getElementById('riskBar').style.background = color;
-  document.getElementById('riskVal').textContent = `${risk}/100 — ${label}`;
-  document.getElementById('riskVal').style.color = color;
+  { const _e = document.getElementById('riskBar'); if(_e) _e.style.width = risk + '%'; }
+  { const _e = document.getElementById('riskBar'); if(_e) _e.style.background = color; }
+  { const _e = document.getElementById('riskVal'); if(_e) _e.textContent = `${risk}/100 — ${label}`; }
+  { const _e = document.getElementById('riskVal'); if(_e) _e.style.color = color; }
 }
 
 // ═══════════════════════════════════════════════════════════
