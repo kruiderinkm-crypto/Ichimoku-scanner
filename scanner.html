@@ -1958,9 +1958,9 @@ async function scan() {
   const tbody  = document.getElementById('tbody');
   const btn    = document.getElementById('rbtn');
 
-  loader.classList.add('show');
-  tbody.innerHTML = '';
-  btn.disabled = true;
+  if (loader) loader.classList.add('show');
+  if (tbody)  tbody.innerHTML = '';
+  if (btn)    btn.disabled = true;
   hideErr();
   setProgress(0);
 
@@ -2084,8 +2084,8 @@ async function scan() {
     showErr(`Fout: ${e.message}`);
     setStatus('err', 'Mislukt');
   } finally {
-    loader.classList.remove('show');
-    btn.disabled = false;
+    if (loader) loader.classList.remove('show');
+    if (btn) { btn.disabled = false; }
   }
 }
 
@@ -3377,9 +3377,9 @@ function setStatus(s, msg) {
 }
 function setLtxt(t)  { var e=document.getElementById('ltxt'); if(e) e.textContent=t; }
 function setProgress(p) { var e=document.getElementById('pFill'); if(e) e.style.width=p+'%'; }
-function showErr(m)  { const e=document.getElementById('errBox'); e.textContent=m; e.style.display='block'; }
+function showErr(m)  { const e=document.getElementById('errBox'); if(e){ e.textContent=m; e.style.display='block'; } console.warn('Scan fout:',m); }
 function hideErr()   { var eb=document.getElementById('errBox'); if(eb) eb.style.display='none'; }
-function setF(f, el) { filt=f; document.querySelectorAll('.ft').forEach(t=>t.classList.remove('on')); el.classList.add('on'); render(); }
+function setF(f, el) { filt=f; document.querySelectorAll('.ft').forEach(t=>t.classList.remove('on')); if(el) el.classList.add('on'); render(); }
 function doSort(k)   { if(srt.k===k) srt.d=srt.d==='asc'?'desc':'asc'; else{srt.k=k; srt.d=(k==='score'||k==='change'||k==='verdict')?'desc':'asc';} render(); }
 function doRefresh() { var el=document.getElementById('selIv'); cd=el?+el.value||300:300; scan(); }
 
@@ -3552,7 +3552,7 @@ function switchTab(name, el) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name)?.classList.add('active');
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   if (name === 'portfolio') enrichAndRefresh?.();
   if (name === 'alerts')    renderAlerts?.();
   if (name === 'reversal')  { if (REVERSAL_SIGNALS.length === 0 && DATA.length > 0) runReversalScan(); else if (typeof renderCoinListReversalTab !== 'undefined') renderReversalTab(); }
